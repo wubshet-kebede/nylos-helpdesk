@@ -27,35 +27,127 @@ The application allows team members to create, assign, update, and track support
 - Docker Compose for local PostgreSQL
 - Git and GitHub
 
-## Architecture
+# Nylos Helpdesk - Backend Architecture
 
-The backend follows a **pragmatic layered modular monolith** architecture.
+Welcome to the backend repository for **Nylos Helpdesk**. This project is built as a **Pragmatic Layered Modular Monolith** targeting .NET 10.
 
-It runs as one ASP.NET Core API host and is deployed as a single application. Internally, the code is organized into business modules with explicit boundaries.
+---
+
+## 🏗️ Architecture Overview
+
+When building backend systems, developers often choose between two extremes:
+
+1. **Traditional Monoliths:** Simple to set up initially, but over time, code becomes tangled (a "spaghetti codebase") as features grow.
+2. **Microservices:** Great for massive scale, but brings huge network overhead, complex deployment setups, and hard-to-debug distributed systems.
+
+**My Approach: The Modular Monolith**
+
+- **Single Deployment Unit:** The application compiles into a single executable API host. It runs on one process, starts up quickly, and is inexpensive to host.
+- **Isolated Feature Modules:** Inside the codebase, business domains (`Tickets`, `Comments`, `Users`) are strictly separated into independent projects with clear boundaries.
+
+---
+
+## 📁 Complete Folder Structure
+
+````text
+nylos-helpdesk/backend/
+│
+├── Nylos.Helpdesk.slnx                   # Solution file managing all C# projects
+│
+└── src/
+    ├── Host/                             # Web Server & Entry Point
+    │   └── Nylos.Helpdesk.Api/           # ASP.NET Core API application
+    │
+    ├── Shared/                           # Cross-module reusable components
+    │   ├── Nylos.Helpdesk.Shared.Abstractions/    # Pure C# contracts, base types & interfaces
+    │   └── Nylos.Helpdesk.Shared.Infrastructure/  # EF Core helpers, global middleware & policies
+    │
+    └── Modules/                          # Business Domain Modules
+        │
+        ├── Tickets/                      # Helpdesk Ticket Management
+        │   ├── Nylos.Helpdesk.Modules.Tickets            # Private implementation
+        │   └── Nylos.Helpdesk.Modules.Tickets.Contracts  # Public interface for outside modules
+        │
+        ├── Comments/                     # Ticket Discussion & Comments
+        │   ├── Nylos.Helpdesk.Modules.Comments           # Private implementation
+        │   └── Nylos.Helpdesk.Modules.Comments.Contracts # Public interface for outside modules
+        │
+        └── Users/                        # Authentication & User Management
+            ├── Nylos.Helpdesk.Modules.Users              # Private implementation
+            └── Nylos.Helpdesk.Modules.Users.Contracts    # Public interface for outside modules
+
+
+---
+
+## 🔍 Detailed Component Breakdown (Part 1: Host & Shared)
+
+### 1. `src/Host/` (The Application Gateway)
+The `Host` folder contains the runtime executable project (`Nylos.Helpdesk.Api`).
+
+* **Responsibilities:**
+  * Configures the HTTP request pipeline (CORS, Authorization, OpenAPI / Swagger).
+  * Reads configuration files (`appsettings.json`, environment variables).
+  * Registers Dependency Injection modules using `builder.Services.AddTicketsModule()`, `AddCommentsModule()`, and `AddUsersModule()`.
+* **Rules for Host:**
+  * **No Controllers:** Controllers belong inside each module's `Presentation/` folder.
+  * **No Database Contexts:** Data persistence belongs strictly inside individual modules.
+  * **No Business Rules:** Host only orchestrates starting the application and wiring modules together.
+
+---
+
+### 2. `src/Shared/` (The Common Foundation)
+The `Shared` folder houses reusable primitives and technical logic needed across all modules.
+
+#### A. `Nylos.Helpdesk.Shared.Abstractions`
+* **Purpose:** Provides pure C# interfaces, abstractions, and base building blocks.
+* **Key Contents:**
+  * **Domain Primitives:** `Entity`, `AggregateRoot<TId>`, `ValueObject`.
+  * **Result Pattern:** Standardized return types (`Result`, `Result<T>`, `Error`) to avoid using slow C# exceptions for normal business flows.
+  * **Shared Contracts:** Base interfaces like `IClock`, `IUnitOfWork`, and `IDomainEvent`.
+* **Dependencies:** Zero heavy external libraries. Keep this project lightweight!
+
+#### B. `Nylos.Helpdesk.Shared.Infrastructure`
+* **Purpose:** Holds technical implementations tied to ASP.NET Core and Entity Framework Core.
+* **Key Contents:**
+  * **Global Exception Handling:** Middleware that catches unhandled exceptions and converts them into standardized JSON (`ProblemDetails`).
+  * **Database Interceptors:** Automatic auditing (e.g., updating `CreatedAt` and `UpdatedAt` timestamps when saving changes).
+  * **Cross-Cutting Utilities:** Custom logging, HTTP policies, and shared swagger extensions.
+---
+
+## 🔍 Detailed Component Breakdown (Part 2: Modules & Communication)
+
+### 3. `src/Modules/` (Business Domain Logic)
+Every business capability is placed inside `src/Modules/`. Each module is divided into **two distinct projects**:
+
+#### A. The Main Module (e.g., `Nylos.Helpdesk.Modules.Tickets`)
+This is the **private core** of the module. Other modules **cannot** reference this project directly. Internally, it follows a clean, pragmatic 4-layer structure:
+
+1. 📂 **`Domain/`**: The core business heart. Contains entities (`Ticket.cs`), value objects (`TicketPriority.cs`), enums, and domain logic. It has no external dependencies.
+2. 📂 **`Application/`**: Use-case orchestration. Implements feature handling using Commands, Queries, and DTOs (e.g., `CreateTicketCommand`, `GetTicketByIdQuery`).
+3. 📂 **`Infrastructure/`**: Data persistence and external integrations. Contains the module's private `DbContext`, entity configurations, and repositories.
+4. 📂 **`Presentation/`**: HTTP communication. Contains API Controllers or Minimal API Endpoints that receive requests and map them to Application handlers.
+
+#### B. The Contracts Project (e.g., `Nylos.Helpdesk.Modules.Tickets.Contracts`)
+This is the **public face** of the module.
+
+* When the `Comments` module needs data from `Tickets`, it **only** references `Nylos.Helpdesk.Modules.Tickets.Contracts`.
+* **Key Contents:**
+  * **Public Interfaces:** Contract APIs exposed for in-memory module communication (e.g., `ITicketApi`).
+  * **Public DTOs:** Data Transfer Objects safe to share across module boundaries (e.g., `TicketSummaryDto`).
+  * **Integration Events:** Asynchronous event definitions emitted when significant business state changes occur (e.g., `TicketResolvedIntegrationEvent`).
+
+---
+
+## 🤝 Cross-Module Communication Rules
+
+Modules must never reach into another module's internal database or private files. Communication happens in two controlled ways:
 
 ```text
-backend/
-├── src/
-│   ├── Host/
-│   │   └── Nylos.Helpdesk.Api
-│   │
-│   ├── Modules/
-│   │   ├── Tickets/
-│   │   │   ├── Nylos.Helpdesk.Modules.Tickets
-│   │   │   └── Nylos.Helpdesk.Modules.Tickets.Contracts
-│   │   ├── Comments/
-│   │   │   ├── Nylos.Helpdesk.Modules.Comments
-│   │   │   └── Nylos.Helpdesk.Modules.Comments.Contracts
-│   │   └── Users/
-│   │       ├── Nylos.Helpdesk.Modules.Users
-│   │       └── Nylos.Helpdesk.Modules.Users.Contracts
-│   │
-│   └── Shared/
-│       ├── Nylos.Helpdesk.Shared.Abstractions
-│       └── Nylos.Helpdesk.Shared.Infrastructure
-│
-└── tests/
-```
+  [ Comments Module ] ──(Calls Interface)──> [ Tickets.Contracts (ITicketApi) ]
+                                                            ▲
+                                                            │ (Implemented by)
+                                            [ Tickets Module (Private) ]
+
 
 ### Modules
 
@@ -110,7 +202,7 @@ Install:
 ```bash
 git clone https://github.com/wubshet-kebede/nylos-helpdesk.git
 cd nylos-helpdesk
-```
+````
 
 ### Backend
 

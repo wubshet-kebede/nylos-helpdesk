@@ -1,8 +1,17 @@
+/*it is the application Entry point
+Starts the web server, sets up routing, 
+and configures cross-cutting middleware
+ (like CORS, Swagger/OpenAPI, 
+ Authentication, HTTPS redirection).*/
 using Nylos.Helpdesk.Modules.Tickets;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add Modules
+/*
+It holds references to every module's main .csproj so it can invoke their registration hooks
+it act as module aggregation or wiring 
+*/
 builder.Services.AddTicketsModule(builder.Configuration);
 
 // Add services to the container
