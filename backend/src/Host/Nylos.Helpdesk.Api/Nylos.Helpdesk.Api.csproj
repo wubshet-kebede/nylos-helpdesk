@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Modules\Tickets\Nylos.Helpdesk.Modules.Tickets\Nylos.Helpdesk.Modules.Tickets.csproj" />
+    <ProjectReference Include="..\..\Modules\Comments\Nylos.Helpdesk.Modules.Comments\Nylos.Helpdesk.Modules.Comments.csproj" />
+    <ProjectReference Include="..\..\Modules\Users\Nylos.Helpdesk.Modules.Users\Nylos.Helpdesk.Modules.Users.csproj" />
+    <ProjectReference Include="..\..\Shared\Nylos.Helpdesk.Shared.Infrastructure\Nylos.Helpdesk.Shared.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>
