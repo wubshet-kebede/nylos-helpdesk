@@ -27,6 +27,38 @@ The application allows team members to create, assign, update, and track support
 - Docker Compose for local PostgreSQL
 - Git and GitHub
 
+## Local PostgreSQL
+
+PostgreSQL runs locally through Docker Compose.
+
+### Start the database
+
+```bash
+cd backend
+cp .env.example .env
+docker compose up -d
+```
+
+### Check database status
+
+```bash
+docker compose ps
+```
+
+### Stop the database
+
+```bash
+docker compose down
+```
+
+### Remove the database and all local data
+
+> Warning: this permanently deletes local PostgreSQL data.
+
+```bash
+docker compose down -v
+```
+
 # Nylos Helpdesk - Backend Architecture
 
 Welcome to the backend repository for **Nylos Helpdesk**. This project is built as a **Pragmatic Layered Modular Monolith** targeting .NET 10.
