@@ -3,7 +3,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Nylos.Helpdesk.Shared.Abstractions\Nylos.Helpdesk.Shared.Abstractions.csproj" />
   </ItemGroup>
-
+   
   <ItemGroup>
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
   </ItemGroup>
@@ -13,5 +13,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
-
+<ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
 </Project>

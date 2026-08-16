@@ -12,8 +12,8 @@ public static class TicketEndpoints
     public static IEndpointRouteBuilder MapTicketEndpoints(this IEndpointRouteBuilder endpoints)
     {
         var group = endpoints.MapGroup("api/tickets")
-            .WithTags("Tickets");
-
+            .WithTags("Tickets")
+            .RequireAuthorization();
         group.MapPost("/", async (CreateTicketRequest request, ISender sender, CancellationToken ct) =>
         {
             var command = new CreateTicketCommand(

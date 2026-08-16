@@ -3,6 +3,9 @@ Starts the web server, sets up routing,
 and configures cross-cutting middleware
  (like CORS, Swagger/OpenAPI, 
  Authentication, HTTPS redirection).*/
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 using Nylos.Helpdesk.Modules.Tickets;
 using Nylos.Helpdesk.Modules.Tickets.Presentation;
 var builder = WebApplication.CreateBuilder(args);
@@ -15,10 +18,48 @@ builder.Services.AddOpenApi();
 It holds references to every module's main .csproj so it can invoke their registration hooks
 it act as module aggregation or wiring 
 */
+// authentication and authorization
+var jwtSettings = builder.Configuration.GetSection("Jwt");
+var secretKey = Encoding.UTF8.GetBytes(jwtSettings["Secret"]!);
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = jwtSettings["Issuer"],
+        ValidAudience = jwtSettings["Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(secretKey)
+    };
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            if (context.Request.Cookies.TryGetValue("accessToken", out var token))
+            {
+                context.Token = token;
+            }
+            return Task.CompletedTask;
+        }
+    };
+});
+
+builder.Services.AddAuthorization();
+
 builder.Services.AddTicketsModule(builder.Configuration);
-
-
+// builder.Services.AddUsersModule(builder.Configuration);
+// builder.Services.AddCommentsModule(builder.Configuration);
 var app = builder.Build();
+// Enable Authentication & Authorization Middleware
+app.UseAuthentication();
+app.UseAuthorization();
 app.MapTicketEndpoints();
 // Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
