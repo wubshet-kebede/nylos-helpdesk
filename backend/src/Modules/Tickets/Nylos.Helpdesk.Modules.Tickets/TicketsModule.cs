@@ -16,6 +16,8 @@ public static class TicketsModule
         var connectionString = configuration.GetConnectionString("Database");
         services.AddDbContext<TicketsDbContext>(options => options.UseNpgsql(connectionString, npgsql => npgsql.MigrationsHistoryTable("__EFMigrationsHistory", "tickets")));
         services.AddScoped<ITicketNumberGenerator, TicketNumberGenerator>();
+        services.AddMediatR(cfg =>
+            cfg.RegisterServicesFromAssembly(typeof(TicketsModule).Assembly));
         return services;
     }
 }
