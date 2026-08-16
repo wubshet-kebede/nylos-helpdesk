@@ -4,7 +4,7 @@ and configures cross-cutting middleware
  (like CORS, Swagger/OpenAPI, 
  Authentication, HTTPS redirection).*/
 using Nylos.Helpdesk.Modules.Tickets;
-
+using Nylos.Helpdesk.Modules.Tickets.Presentation;
 var builder = WebApplication.CreateBuilder(args);
 // Add services to the container
 builder.Services.AddControllers();
@@ -19,7 +19,7 @@ builder.Services.AddTicketsModule(builder.Configuration);
 
 
 var app = builder.Build();
-
+app.MapTicketEndpoints();
 // Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {

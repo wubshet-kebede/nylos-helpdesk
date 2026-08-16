@@ -1,9 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Nylos.Helpdesk.Modules.Tickets.Contracts\Nylos.Helpdesk.Modules.Tickets.Contracts.csproj" />
     <ProjectReference Include="..\..\..\Shared\Nylos.Helpdesk.Shared.Abstractions\Nylos.Helpdesk.Shared.Abstractions.csproj" />
     <ProjectReference Include="..\..\..\Shared\Nylos.Helpdesk.Shared.Infrastructure\Nylos.Helpdesk.Shared.Infrastructure.csproj" />
+    
   </ItemGroup>
 
   <ItemGroup>
