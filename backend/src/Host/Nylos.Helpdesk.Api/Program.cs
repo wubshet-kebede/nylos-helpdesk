@@ -11,6 +11,7 @@ using Nylos.Helpdesk.Modules.Tickets.Presentation;
 using Nylos.Helpdesk.Modules.Users;
 using Nylos.Helpdesk.Modules.Users.Infrastructure.Persistence;
 using Nylos.Helpdesk.Modules.Users.Presentation;
+using Nylos.Helpdesk.Shared.Infrastructure;
 var builder = WebApplication.CreateBuilder(args);
 // Add services to the container
 builder.Services.AddControllers();
@@ -59,7 +60,7 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddTicketsModule(builder.Configuration);
 builder.Services.AddUsersModule(builder.Configuration);
-
+builder.Services.AddSharedInfrastructure();
 // builder.Services.AddCommentsModule(builder.Configuration);
 var app = builder.Build();
 //
