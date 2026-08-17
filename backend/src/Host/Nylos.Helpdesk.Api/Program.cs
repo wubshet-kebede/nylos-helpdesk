@@ -10,11 +10,13 @@ using Nylos.Helpdesk.Modules.Tickets;
 using Nylos.Helpdesk.Modules.Tickets.Presentation;
 using Nylos.Helpdesk.Modules.Users;
 using Nylos.Helpdesk.Modules.Users.Infrastructure.Persistence;
+using Nylos.Helpdesk.Modules.Users.Presentation;
 var builder = WebApplication.CreateBuilder(args);
 // Add services to the container
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi();
+builder.Services.AddHttpContextAccessor();
 // Add Modules
 /*
 It holds references to every module's main .csproj so it can invoke their registration hooks
@@ -65,6 +67,7 @@ var app = builder.Build();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapTicketEndpoints();
+app.MapUserEndpoints();
 // Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {

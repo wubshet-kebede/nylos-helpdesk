@@ -27,7 +27,14 @@ internal sealed class UserConfiguration : IEntityTypeConfiguration<User>
             .IsRequired();
 
         builder.Property(u => u.UserRole)
+            .HasConversion<string>()
             .HasMaxLength(50)
             .IsRequired();
+        builder.Property(u => u.CreatedAt)
+            .IsRequired()
+            .HasColumnName("CreatedAt");
+
+        builder.HasIndex(u => u.Email)
+            .IsUnique();    
     }
 }
