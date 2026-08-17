@@ -34,13 +34,18 @@ public static class UserEndpoints
             $"/api/v1/users/{userId}",
             new { id = userId });
     });
-
-        group.MapPost("/login", async (LoginUserCommand command, ISender sender) =>
+        group.MapPost("/login", 
+        async (
+            LoginUserRequest request,
+            ISender sender) =>
         {
+            var command = new LoginUserCommand(
+                request.Email,
+                request.Password
+            );
             var success = await sender.Send(command);
             return success ? Results.Ok(new { message = "Logged in successfully" }) : Results.Unauthorized();
-        });
-
+        }); 
         group.MapPost("/refresh", async (ISender sender) =>
         {
             var success = await sender.Send(new RefreshTokenCommand());

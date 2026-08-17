@@ -38,7 +38,7 @@ public static class UsersDbInitializer
                 var adminUser = new User(
                     Guid.NewGuid(),
                     "admin@nylos.com",
-                    "System Administrator",
+                    "Wubshet Ayellew",
                     passwordHasher.HashPassword("Admin@123456"),
                     UserRole.Admin
                 );
