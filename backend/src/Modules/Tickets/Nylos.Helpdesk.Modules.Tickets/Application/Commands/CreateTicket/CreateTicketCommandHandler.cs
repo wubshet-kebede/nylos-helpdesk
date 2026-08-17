@@ -33,7 +33,7 @@ public sealed class CreateTicketCommandHandler : IRequestHandler<CreateTicketCom
             request.CreatedById
         );
 
-        // 3. Persist entity to database
+        //  Persist entity to database
         _dbContext.Tickets.Add(ticket);
         await _dbContext.SaveChangesAsync(cancellationToken);
 

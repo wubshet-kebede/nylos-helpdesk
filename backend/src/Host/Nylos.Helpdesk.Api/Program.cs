@@ -59,10 +59,15 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddTicketsModule(builder.Configuration);
 builder.Services.AddUsersModule(builder.Configuration);
+
 // builder.Services.AddCommentsModule(builder.Configuration);
 var app = builder.Build();
+//
+// Automatically route unhandled exceptions into ProblemDetails format
+//
+app.UseExceptionHandler(); 
 // Seed Default Admin User
- await UsersDbInitializer.SeedAsync(app.Services);
+await UsersDbInitializer.SeedAsync(app.Services);
 // Enable Authentication & Authorization Middleware
 app.UseAuthentication();
 app.UseAuthorization();

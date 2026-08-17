@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Nylos.Helpdesk.Modules.Users.Application.Abstractions;
 using Nylos.Helpdesk.Modules.Users.Domain;
 using Nylos.Helpdesk.Modules.Users.Infrastructure.Persistence;
+using Nylos.Helpdesk.Shared.Abstractions.Exceptions;
 
 namespace Nylos.Helpdesk.Modules.Users.Application.Commands.RegisterUser;
 
@@ -30,9 +31,9 @@ internal sealed class RegisterUserCommandHandler : IRequestHandler<RegisterUserC
             .AnyAsync(u => u.Email == normalizedEmail, cancellationToken);
 
         if (emailExists)
-        {
-            throw new InvalidOperationException("User with this email already exists.");
-        }
+{
+    throw new ConflictException("A user with this email address already exists.");
+}
 
         var passwordHash = _passwordHasher.HashPassword(request.Password);
         
