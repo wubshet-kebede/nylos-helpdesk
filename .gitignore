@@ -30,6 +30,10 @@ build/
 .env.*
 !.env.example
 
+# Local authentication cookies
+*.cookies
+cookies.txt
+
 # =========================
 # OS
 # =========================
