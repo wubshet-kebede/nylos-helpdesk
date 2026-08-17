@@ -1,4 +1,5 @@
 using MediatR;
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,7 +22,7 @@ public static class UsersModule
         services.AddScoped<IJwtProvider, JwtProvider>();
         services.AddMediatR(cfg =>
             cfg.RegisterServicesFromAssembly(typeof(UsersModule).Assembly));
-
+        services.AddValidatorsFromAssembly(typeof(UsersModule).Assembly);
         return services;
     }
 }

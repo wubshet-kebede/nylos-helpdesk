@@ -31,21 +31,21 @@ internal sealed class RegisterUserCommandHandler : IRequestHandler<RegisterUserC
             .AnyAsync(u => u.Email == normalizedEmail, cancellationToken);
 
         if (emailExists)
-{
-    throw new ConflictException("A user with this email address already exists.");
-}
+        {
+            throw new ConflictException("A user with this email address already exists.");
+        }
 
         var passwordHash = _passwordHasher.HashPassword(request.Password);
-        
+
         // HARDCODED SAFE DEFAULT ROLE:
         // Regular users register as "Customer". Admins/Agents are provisioned separately!
-       const UserRole defaultRole = UserRole.Customer;
+        const UserRole defaultRole = UserRole.Customer;
         var user = new User(
             Guid.NewGuid(),
             normalizedEmail,
             request.FullName,
             passwordHash,
-            defaultRole 
+            defaultRole
         );
 
         _dbContext.Users.Add(user);
