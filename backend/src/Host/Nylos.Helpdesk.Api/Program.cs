@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Nylos.Helpdesk.Modules.Tickets;
 using Nylos.Helpdesk.Modules.Tickets.Presentation;
+using Nylos.Helpdesk.Modules.Users;
 var builder = WebApplication.CreateBuilder(args);
 // Add services to the container
 builder.Services.AddControllers();
@@ -54,7 +55,7 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddAuthorization();
 
 builder.Services.AddTicketsModule(builder.Configuration);
-// builder.Services.AddUsersModule(builder.Configuration);
+builder.Services.AddUsersModule(builder.Configuration);
 // builder.Services.AddCommentsModule(builder.Configuration);
 var app = builder.Build();
 // Enable Authentication & Authorization Middleware
