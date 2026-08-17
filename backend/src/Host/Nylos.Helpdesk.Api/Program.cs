@@ -9,6 +9,7 @@ using Microsoft.IdentityModel.Tokens;
 using Nylos.Helpdesk.Modules.Tickets;
 using Nylos.Helpdesk.Modules.Tickets.Presentation;
 using Nylos.Helpdesk.Modules.Users;
+using Nylos.Helpdesk.Modules.Users.Infrastructure.Persistence;
 var builder = WebApplication.CreateBuilder(args);
 // Add services to the container
 builder.Services.AddControllers();
@@ -58,6 +59,8 @@ builder.Services.AddTicketsModule(builder.Configuration);
 builder.Services.AddUsersModule(builder.Configuration);
 // builder.Services.AddCommentsModule(builder.Configuration);
 var app = builder.Build();
+// Seed Default Admin User
+ await UsersDbInitializer.SeedAsync(app.Services);
 // Enable Authentication & Authorization Middleware
 app.UseAuthentication();
 app.UseAuthorization();

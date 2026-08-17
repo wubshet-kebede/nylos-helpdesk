@@ -27,7 +27,7 @@ internal sealed class JwtProvider : IJwtProvider
         {
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
             new Claim(JwtRegisteredClaimNames.Email, user.Email),
-            new Claim(ClaimTypes.Role, user.UserRole),
+            new Claim(ClaimTypes.Role, user.UserRole.ToString()),
             new Claim("fullName", user.FullName)
         };
 
