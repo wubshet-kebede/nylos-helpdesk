@@ -1,6 +1,6 @@
 # Nylos Helpdesk
 
-A compact internal issue and ticket tracker built for the Nylos Junior Software Developer technical assessment.
+A compact internal issue and ticket tracker built for the Nylos  Software Developer technical assessment.
 
 The application allows team members to create, assign, update, and track support tickets, move tickets through a defined status workflow, and discuss tickets through comments.
 
