@@ -7,6 +7,7 @@ using Nylos.Helpdesk.Modules.Tickets.Application.Commands.CreateTicket;
 using Nylos.Helpdesk.Modules.Tickets.Application.Queries.GetTicketById;
 using Nylos.Helpdesk.Modules.Tickets.Application.Queries.GetTickets;
 using Nylos.Helpdesk.Modules.Tickets.Application.Commands.UpdateTicket;
+using Nylos.Helpdesk.Modules.Tickets.Application.Commands.DeleteTicket;
 using Nylos.Helpdesk.Modules.Tickets.Application.Commands.AssignTicket;
 using Nylos.Helpdesk.Modules.Tickets.Presentation.Contracts;
 
@@ -104,6 +105,20 @@ public static class TicketEndpoints
             return Results.NoContent();
         })
         .WithName("AssignTicket")
+        .Produces(StatusCodes.Status204NoContent)
+        .ProducesProblem(StatusCodes.Status404NotFound)
+        .ProducesProblem(StatusCodes.Status401Unauthorized);
+        // delete ticket 
+        group.MapDelete("/{id:guid}", async (
+            Guid id,
+            ISender sender,
+            CancellationToken ct) =>
+        {
+            var command = new DeleteTicketCommand(id);
+            await sender.Send(command, ct);
+            return Results.NoContent();
+        })
+        .WithName("DeleteTicket")
         .Produces(StatusCodes.Status204NoContent)
         .ProducesProblem(StatusCodes.Status404NotFound)
         .ProducesProblem(StatusCodes.Status401Unauthorized);
