@@ -15,10 +15,10 @@ export default function Navbar() {
 
           <div className="leading-none">
             <span className="block text-lg font-bold tracking-tight text-slate-950">
-              Nylos
+              NYLOS
             </span>
 
-            <span className="mt-1 block text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400">
+            <span className="mt-1 block text-[10px] font-semibold  tracking-[0.2em] text-slate-400">
               Helpdesk
             </span>
           </div>

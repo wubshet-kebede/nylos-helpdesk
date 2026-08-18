@@ -4,10 +4,10 @@ import Footer from "../components/common/Footer";
 
 export default function AppLayout() {
   return (
-    <div className="min-h-screen bg-white text-slate-950">
+    <div className="flex min-h-screen w-full flex-col bg-white text-slate-950">
       <Navbar />
 
-      <main>
+      <main className="w-full flex-1">
         <Outlet />
       </main>
 
