@@ -9,6 +9,7 @@ using Microsoft.IdentityModel.Tokens;
 using Nylos.Helpdesk.Modules.Tickets;
 using Nylos.Helpdesk.Modules.Tickets.Presentation;
 using Nylos.Helpdesk.Modules.Users;
+using Nylos.Helpdesk.Modules.Comments;
 using Nylos.Helpdesk.Modules.Users.Infrastructure.Persistence;
 using Nylos.Helpdesk.Modules.Users.Presentation;
 using Nylos.Helpdesk.Shared.Infrastructure;
@@ -62,6 +63,7 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddTicketsModule(builder.Configuration);
 builder.Services.AddUsersModule(builder.Configuration);
+builder.Services.AddCommentsModule(builder.Configuration);
 builder.Services.AddSharedInfrastructure();
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
