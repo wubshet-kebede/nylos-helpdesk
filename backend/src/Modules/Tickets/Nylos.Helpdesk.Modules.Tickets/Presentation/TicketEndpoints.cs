@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Routing;
 using Nylos.Helpdesk.Modules.Tickets.Application.Commands.CreateTicket;
 using Nylos.Helpdesk.Modules.Tickets.Application.Queries.GetTicketById;
 using Nylos.Helpdesk.Modules.Tickets.Application.Queries.GetTickets;
+using Nylos.Helpdesk.Modules.Tickets.Application.Commands.UpdateTicket;
+using Nylos.Helpdesk.Modules.Tickets.Application.Commands.AssignTicket;
 using Nylos.Helpdesk.Modules.Tickets.Presentation.Contracts;
 
 namespace Nylos.Helpdesk.Modules.Tickets.Presentation;
@@ -71,6 +73,39 @@ public static class TicketEndpoints
         })
         .WithName("GetTickets")
         .Produces<PagedResult<TicketSummaryDto>>(StatusCodes.Status200OK)
+        .ProducesProblem(StatusCodes.Status401Unauthorized);
+
+        // update ticket status 
+        // Update Status
+        group.MapPatch("/{id:guid}/status", async (
+            Guid id,
+            UpdateTicketStatusRequest request,
+            ISender sender,
+            CancellationToken ct) =>
+        {
+            var command = new UpdateTicketStatusCommand(id, request.NewStatus);
+            await sender.Send(command, ct);
+            return Results.NoContent();
+        })
+        .WithName("UpdateTicketStatus")
+        .Produces(StatusCodes.Status204NoContent)
+        .ProducesProblem(StatusCodes.Status404NotFound)
+        .ProducesProblem(StatusCodes.Status401Unauthorized);
+
+        // Assign Agent
+        group.MapPatch("/{id:guid}/assign", async (
+            Guid id,
+            AssignTicketRequest request,
+            ISender sender,
+            CancellationToken ct) =>
+        {
+            var command = new AssignTicketCommand(id, request.AgentId);
+            await sender.Send(command, ct);
+            return Results.NoContent();
+        })
+        .WithName("AssignTicket")
+        .Produces(StatusCodes.Status204NoContent)
+        .ProducesProblem(StatusCodes.Status404NotFound)
         .ProducesProblem(StatusCodes.Status401Unauthorized);
         return endpoints;
     }
