@@ -3,6 +3,8 @@ import DefaultLayout from "./layouts/DefaultLayout";
 import HomePage from "./pages/LandingPage";
 import LoginPage from "./pages/auth/LoginPage";
 import SignUpPage from "./pages/auth/SignUpPage";
+import DashboardPage from "./pages/dashboard/DashboardPage";
+import WorkspaceLayout from "./layouts/WorkspaceLayout";
 export const router = createBrowserRouter([
   {
     element: <DefaultLayout />,
@@ -20,5 +22,15 @@ export const router = createBrowserRouter([
   {
     path: "/register",
     element: <SignUpPage />,
+  },
+  {
+    path: "app",
+    element: <WorkspaceLayout />,
+    children: [
+      {
+        path: "dashboard",
+        element: <DashboardPage />,
+      },
+    ],
   },
 ]);
