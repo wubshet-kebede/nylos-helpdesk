@@ -12,12 +12,14 @@ using Nylos.Helpdesk.Modules.Users;
 using Nylos.Helpdesk.Modules.Users.Infrastructure.Persistence;
 using Nylos.Helpdesk.Modules.Users.Presentation;
 using Nylos.Helpdesk.Shared.Infrastructure;
+using System.Text.Json.Serialization;
 var builder = WebApplication.CreateBuilder(args);
 // Add services to the container
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi();
 builder.Services.AddHttpContextAccessor();
+
 // Add Modules
 /*
 It holds references to every module's main .csproj so it can invoke their registration hooks
@@ -61,12 +63,17 @@ builder.Services.AddAuthorization();
 builder.Services.AddTicketsModule(builder.Configuration);
 builder.Services.AddUsersModule(builder.Configuration);
 builder.Services.AddSharedInfrastructure();
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    options.SerializerOptions.Converters.Add(
+        new JsonStringEnumConverter());
+});
 // builder.Services.AddCommentsModule(builder.Configuration);
 var app = builder.Build();
 //
 // Automatically route unhandled exceptions into ProblemDetails format
 //
-app.UseExceptionHandler(); 
+app.UseExceptionHandler();
 // Seed Default Admin User
 await UsersDbInitializer.SeedAsync(app.Services);
 // Enable Authentication & Authorization Middleware

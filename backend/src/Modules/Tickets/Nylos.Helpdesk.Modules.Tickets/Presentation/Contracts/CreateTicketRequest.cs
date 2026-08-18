@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Nylos.Helpdesk.Modules.Tickets.Domain;
 
 namespace Nylos.Helpdesk.Modules.Tickets.Presentation.Contracts;
@@ -5,6 +6,5 @@ namespace Nylos.Helpdesk.Modules.Tickets.Presentation.Contracts;
 public sealed record CreateTicketRequest(
     string Title,
     string Description,
-    TicketPriority Priority,
-    Guid CreatedById
+    [property: JsonConverter(typeof(JsonStringEnumConverter))] TicketPriority Priority
 );

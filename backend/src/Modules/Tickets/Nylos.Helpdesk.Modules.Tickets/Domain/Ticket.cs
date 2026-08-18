@@ -10,10 +10,10 @@ public class Ticket
     public string Description { get; private set; } = string.Empty;
     public TicketPriority Priority { get; private set; }
     public TicketStatus Status { get; private set; }
-    
+
     public Guid CreatedById { get; private set; }
     public Guid? AssigneeId { get; private set; }
-    
+
     public DateTime CreatedAt { get; private set; }
     public DateTime? UpdatedAt { get; private set; }
 
@@ -42,6 +42,13 @@ public class Ticket
         AssigneeId = assigneeId;
         UpdatedAt = DateTime.UtcNow;
     }
+    public void UpdateDetails(string title, string description, TicketPriority priority)
+    {
+        Title = title.Trim();
+        Description = description.Trim();
+        Priority = priority;
+        UpdatedAt = DateTime.UtcNow;
+    }
 
     /// <summary>
     /// Invalid status transitions are rejected.
@@ -54,11 +61,11 @@ public class Ticket
         {
             // Open can only move to InProgress
             (TicketStatus.Open, TicketStatus.InProgress) => true,
-            
+
             // InProgress can move back to Open or forward to Resolved
             (TicketStatus.InProgress, TicketStatus.Open) => true,
             (TicketStatus.InProgress, TicketStatus.Resolved) => true,
-            
+
             // Resolved can move to Closed or back to InProgress if re-opened
             (TicketStatus.Resolved, TicketStatus.Closed) => true,
             (TicketStatus.Resolved, TicketStatus.InProgress) => true,
