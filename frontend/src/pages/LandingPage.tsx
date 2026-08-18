@@ -6,10 +6,6 @@ export default function LandingPage() {
   return (
     <div className="overflow-hidden bg-white">
       <HeroSection />
-
-      {/* =====================================================
-          PRODUCT VALUE
-      ====================================================== */}
       <section className="border-y border-slate-100 bg-slate-50/70">
         <div className="mx-auto max-w-7xl px-6 py-16 lg:px-8">
           <div className="grid gap-10 text-center sm:grid-cols-3">
@@ -38,10 +34,6 @@ export default function LandingPage() {
       </section>
       <FeaturesSection />
       <WorkflowSection />
-
-      {/* =====================================================
-          CTA
-      ====================================================== */}
       <CTASection />
     </div>
   );
