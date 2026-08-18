@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Nylos.Helpdesk.Modules.Tickets.Application.Commands.CreateTicket;
+using Nylos.Helpdesk.Modules.Tickets.Application.Queries.GetTicketById;
 using Nylos.Helpdesk.Modules.Tickets.Presentation.Contracts;
 
 namespace Nylos.Helpdesk.Modules.Tickets.Presentation;
@@ -46,6 +47,17 @@ public static class TicketEndpoints
         .WithName("CreateTicket")
         .Produces<object>(StatusCodes.Status201Created)
         .ProducesProblem(StatusCodes.Status400BadRequest)
+        .ProducesProblem(StatusCodes.Status401Unauthorized);
+        //get 
+        group.MapGet("/{id:guid}", async (Guid id, ISender sender, CancellationToken ct) =>
+        {
+            var query = new GetTicketByIdQuery(id);
+            var result = await sender.Send(query, ct);
+            return Results.Ok(result);
+        })
+        .WithName("GetTicketById")
+        .Produces<TicketDetailsDto>(StatusCodes.Status200OK)
+        .ProducesProblem(StatusCodes.Status404NotFound)
         .ProducesProblem(StatusCodes.Status401Unauthorized);
 
         return endpoints;
