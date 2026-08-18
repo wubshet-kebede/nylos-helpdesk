@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Nylos.Helpdesk.Modules.Tickets.Application.Commands.CreateTicket;
 using Nylos.Helpdesk.Modules.Tickets.Application.Queries.GetTicketById;
+using Nylos.Helpdesk.Modules.Tickets.Application.Queries.GetTickets;
 using Nylos.Helpdesk.Modules.Tickets.Presentation.Contracts;
 
 namespace Nylos.Helpdesk.Modules.Tickets.Presentation;
@@ -48,7 +49,7 @@ public static class TicketEndpoints
         .Produces<object>(StatusCodes.Status201Created)
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .ProducesProblem(StatusCodes.Status401Unauthorized);
-        //get 
+        //get  ticket using id 
         group.MapGet("/{id:guid}", async (Guid id, ISender sender, CancellationToken ct) =>
         {
             var query = new GetTicketByIdQuery(id);
@@ -59,7 +60,18 @@ public static class TicketEndpoints
         .Produces<TicketDetailsDto>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status404NotFound)
         .ProducesProblem(StatusCodes.Status401Unauthorized);
-
+        // get ticket fro pagination and filter 
+        group.MapGet("/", async (
+            [AsParameters] GetTicketsQuery query,
+            ISender sender,
+            CancellationToken ct) =>
+        {
+            var result = await sender.Send(query, ct);
+            return Results.Ok(result);
+        })
+        .WithName("GetTickets")
+        .Produces<PagedResult<TicketSummaryDto>>(StatusCodes.Status200OK)
+        .ProducesProblem(StatusCodes.Status401Unauthorized);
         return endpoints;
     }
 }
