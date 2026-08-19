@@ -8,7 +8,9 @@ import {
   LogOut,
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
-
+import { useAuth } from "../context/AuthContext";
+import { getDisplayName } from "../utils/getDisplayName";
+import { getInitials } from "../utils/getInitials";
 const NAVIGATION = [
   {
     label: "Overview",
@@ -36,6 +38,11 @@ const SECONDARY_NAVIGATION = [
 ] as const;
 
 export default function Sidebar() {
+  const { user } = useAuth();
+
+  const displayName = getDisplayName(user?.fullName);
+
+  const initials = getInitials(user?.fullName);
   return (
     <aside className="sticky top-0 flex  h-screen w-64 shrink-0 flex-col border-r border-slate-200/80 bg-white">
       {/* Brand */}
@@ -157,16 +164,18 @@ export default function Sidebar() {
         <div className="group flex items-center gap-3 rounded-xl p-2 transition-colors hover:bg-slate-50">
           {/* Avatar */}
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-xs font-bold text-indigo-700">
-            WA
+            {initials}
           </div>
 
           {/* User Info */}
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-semibold text-slate-800">
-              Wubshet Ayellew
+              {displayName}
             </p>
 
-            <p className="truncate text-[11px] text-slate-400">Administrator</p>
+            <p className="truncate text-[11px] text-slate-400">
+              {user?.userRole}
+            </p>
           </div>
 
           {/* Logout */}

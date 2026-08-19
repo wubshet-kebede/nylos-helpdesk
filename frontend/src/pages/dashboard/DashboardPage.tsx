@@ -6,16 +6,24 @@ import MyWork from "../../components/dashboard/MyWork";
 import RecentTickets from "../../components/dashboard/RecentTickets";
 import CreateTicketModal from "../../components/tickets/CreateTicketModal";
 import { useTicketStats } from "../../hooks/useTicketsStats";
-
+import { getGreeting } from "../../utils/getGreeting";
+import { useAuth } from "../../context/AuthContext";
 export default function DashboardPage() {
   const [isCreateTicketOpen, setIsCreateTicketOpen] = useState(false);
-  const { totalCount, open, inProgress, resolved, isLoading } =
-    useTicketStats();
-
+  const {
+    totalCount,
+    open,
+    inProgress,
+    resolved,
+    isLoading: isStatsLoading,
+  } = useTicketStats();
+  const { user, isLoading: isAuthLoading } = useAuth();
+  const greeting = getGreeting();
+  const firstName = user?.fullName ? user.fullName.split(" ")[0] : "there";
   const DASHBOARD_STATS = [
     {
       label: "Total Tickets",
-      value: isLoading ? "..." : totalCount,
+      value: isStatsLoading ? "..." : totalCount,
       change: 0,
       description: "vs. last month",
       icon: Ticket,
@@ -23,7 +31,7 @@ export default function DashboardPage() {
     },
     {
       label: "Open Tickets",
-      value: isLoading ? "..." : open,
+      value: isStatsLoading ? "..." : open,
       change: 0,
       description: "vs. last month",
       icon: Activity,
@@ -31,7 +39,7 @@ export default function DashboardPage() {
     },
     {
       label: "In Progress",
-      value: isLoading ? "..." : inProgress,
+      value: isStatsLoading ? "..." : inProgress,
       change: 0,
       description: "vs. last month",
       icon: Clock3,
@@ -39,7 +47,7 @@ export default function DashboardPage() {
     },
     {
       label: "Resolved",
-      value: isLoading ? "..." : resolved,
+      value: isStatsLoading ? "..." : resolved,
       change: 0,
       description: "vs. last month",
       icon: CheckCircle2,
@@ -58,7 +66,11 @@ export default function DashboardPage() {
             </p>
 
             <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">
-              Good evening, Wubshet.
+              {isAuthLoading ? (
+                <span className="inline-block h-10 w-64 animate-pulse rounded-lg bg-slate-200" />
+              ) : (
+                `${greeting}, ${firstName}.`
+              )}
             </h1>
 
             <p className="mt-2 max-w-xl text-sm leading-relaxed text-slate-500">

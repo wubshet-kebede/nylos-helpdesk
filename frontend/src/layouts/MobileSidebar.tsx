@@ -8,7 +8,9 @@ import {
   LogOut,
 } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
-
+import { useAuth } from "../context/AuthContext";
+import { getDisplayName } from "../utils/getDisplayName";
+import { getInitials } from "../utils/getInitials";
 interface MobileSidebarProps {
   open: boolean;
   onClose: () => void;
@@ -41,6 +43,11 @@ const SECONDARY_NAVIGATION = [
 ] as const;
 
 export default function MobileSidebar({ open, onClose }: MobileSidebarProps) {
+  const { user } = useAuth();
+
+  const displayName = getDisplayName(user?.fullName);
+
+  const initials = getInitials(user?.fullName);
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -195,16 +202,16 @@ export default function MobileSidebar({ open, onClose }: MobileSidebarProps) {
         <div className="border-t border-slate-100 p-4">
           <div className="flex items-center gap-3 rounded-xl bg-slate-50 p-3">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-xs font-bold text-indigo-700">
-              WA
+              {initials}
             </div>
 
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold text-slate-800">
-                Wubshet Ayellew
+                {displayName}
               </p>
 
               <p className="truncate text-[11px] text-slate-400">
-                Administrator
+                {user?.userRole}
               </p>
             </div>
 

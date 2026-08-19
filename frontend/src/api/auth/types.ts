@@ -13,9 +13,8 @@ export interface SignupRequest {
 export interface UserDto {
   id: string;
   email: string;
-  firstName: string;
-  lastName: string;
-  //   role: string;
+  fullName: string;
+  userRole: string;
 }
 
 export interface AuthResponse {
