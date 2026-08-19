@@ -1,54 +1,62 @@
 import {
   ArrowUpRight,
   ChevronRight,
+  CircleDot,
   Clock3,
   MoreHorizontal,
 } from "lucide-react";
+import { useNavigate } from "react-router";
+import { useTicketStats } from "../../hooks/useTicketsStats";
+import type { TicketPriority, TicketStatus } from "../../api/tickets/types";
 
-const RECENT_TICKETS = [
-  {
-    id: "NY-1048",
-    title: "Email notification not being delivered",
-    priority: "Medium",
-    priorityClass: "bg-indigo-50 text-indigo-700",
-    status: "In Progress",
-    statusClass: "bg-amber-50 text-amber-700",
-    updated: "2 min ago",
-    assignee: "HA",
-  },
-  {
-    id: "NY-1047",
-    title: "Customer unable to reset password",
-    priority: "High",
-    priorityClass: "bg-rose-50 text-rose-700",
-    status: "Open",
-    statusClass: "bg-blue-50 text-blue-700",
-    updated: "15 min ago",
-    assignee: "WA",
-  },
-  {
-    id: "NY-1046",
-    title: "API request timing out intermittently",
-    priority: "Urgent",
-    priorityClass: "bg-orange-50 text-orange-700",
-    status: "In Progress",
-    statusClass: "bg-amber-50 text-amber-700",
-    updated: "32 min ago",
-    assignee: "MK",
-  },
-  {
-    id: "NY-1045",
-    title: "Dashboard statistics displaying incorrect values",
-    priority: "Low",
-    priorityClass: "bg-slate-100 text-slate-600",
-    status: "Resolved",
-    statusClass: "bg-emerald-50 text-emerald-700",
-    updated: "1 hr ago",
-    assignee: "AB",
-  },
-] as const;
+const getPriorityStyles = (priority: TicketPriority) => {
+  switch (priority) {
+    case "Urgent":
+      return "bg-orange-50 text-orange-700";
+    case "High":
+      return "bg-rose-50 text-rose-700";
+    case "Medium":
+      return "bg-indigo-50 text-indigo-700";
+    case "Low":
+    default:
+      return "bg-slate-100 text-slate-600";
+  }
+};
+
+const getStatusStyles = (status: TicketStatus) => {
+  switch (status) {
+    case "Open":
+      return "bg-blue-50 text-blue-700";
+    case "InProgress":
+      return "bg-amber-50 text-amber-700";
+    case "Resolved":
+      return "bg-emerald-50 text-emerald-700";
+    case "Closed":
+    default:
+      return "bg-slate-100 text-slate-600";
+  }
+};
+
+const formatStatusLabel = (status: TicketStatus) => {
+  if (status === "InProgress") return "In Progress";
+  return status;
+};
+
+const getInitials = (name?: string | null) => {
+  if (!name) return "UN";
+  return name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .substring(0, 2)
+    .toUpperCase();
+};
 
 export default function RecentTickets() {
+  const navigate = useNavigate();
+  const { tickets, isLoading } = useTicketStats({ page: 1, pageSize: 5 });
+  const recentList = tickets.slice(0, 5);
+
   return (
     <section className="mt-6 overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
       {/* Header */}
@@ -56,12 +64,10 @@ export default function RecentTickets() {
         <div>
           <div className="flex items-center gap-2">
             <h2 className="text-sm font-bold text-slate-900">Recent tickets</h2>
-
             <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-500">
               Latest activity
             </span>
           </div>
-
           <p className="mt-1 text-xs text-slate-400">
             Recently created and updated tickets across the workspace.
           </p>
@@ -69,7 +75,8 @@ export default function RecentTickets() {
 
         <button
           type="button"
-          className="group inline-flex w-fit items-center gap-1 text-xs font-semibold text-slate-500 transition-colors hover:text-indigo-600"
+          onClick={() => navigate("/app/tickets")}
+          className="group inline-flex w-fit items-center gap-1 text-xs font-semibold text-slate-500 transition-colors hover:text-indigo-600 cursor-pointer"
         >
           View all tickets
           <ArrowUpRight
@@ -79,165 +86,212 @@ export default function RecentTickets() {
         </button>
       </div>
 
-      {/* Desktop table */}
-      <div className="hidden overflow-x-auto md:block">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-slate-100 bg-slate-50/50">
-              <th className="px-6 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                Ticket
-              </th>
+      {isLoading ? (
+        <div className="p-8 text-center text-xs font-semibold text-slate-400">
+          Loading workspace activity...
+        </div>
+      ) : recentList.length === 0 ? (
+        <div className="p-8 text-center text-xs font-medium text-slate-400">
+          No recent tickets available.
+        </div>
+      ) : (
+        <>
+          {/* Desktop Table with table-fixed layout */}
+          <div className="hidden overflow-x-auto md:block">
+            <table className="w-full table-fixed">
+              <thead>
+                <tr className="border-b border-slate-100 bg-slate-50/50">
+                  <th className="w-2/5 px-6 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    Ticket
+                  </th>
+                  <th className="w-1/6 px-6 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    Priority
+                  </th>
+                  <th className="w-1/6 px-6 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    Status
+                  </th>
+                  <th className="w-1/6 px-6 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    Assignee
+                  </th>
+                  <th className="w-1/6 px-6 py-3 text-right text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    Created
+                  </th>
+                  <th className="w-12 px-4 py-3" />
+                </tr>
+              </thead>
 
-              <th className="px-6 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                Priority
-              </th>
+              <tbody className="divide-y divide-slate-100">
+                {recentList.map((ticket) => {
+                  const priorityClass = getPriorityStyles(ticket.priority);
+                  const statusClass = getStatusStyles(ticket.status);
+                  const initials = getInitials(ticket.assigneeName);
+                  const formattedDate = new Date(
+                    ticket.createdAt,
+                  ).toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                  });
 
-              <th className="px-6 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                Status
-              </th>
+                  return (
+                    <tr
+                      key={ticket.id}
+                      className="group transition-colors duration-150 hover:bg-slate-50/70"
+                    >
+                      {/* Ticket Title with Custom Instant Tooltip */}
+                      <td className="px-6 py-4">
+                        <div className="relative group/tooltip max-w-full">
+                          <button
+                            type="button"
+                            className="w-full text-left cursor-pointer"
+                          >
+                            <span className="block text-[10px] font-bold tracking-wide text-slate-400">
+                              {ticket.ticketNumber}
+                            </span>
 
-              <th className="px-6 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                Assignee
-              </th>
+                            <span className="mt-1 block truncate text-sm font-semibold text-slate-800 transition-colors group-hover/tooltip:text-indigo-600">
+                              {ticket.title}
+                            </span>
+                          </button>
 
-              <th className="px-6 py-3 text-right text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                Updated
-              </th>
+                          {/* Hover Tooltip Popup */}
 
-              <th className="w-10 px-4 py-3" />
-            </tr>
-          </thead>
+                          <div className="pointer-events-none absolute left-0 bottom-full z-30 mb-2 hidden w-max max-w-xs rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-800 shadow-xl group-hover/tooltip:block">
+                            {ticket.title}
+                            <div className="absolute top-full left-4 -mt-1 border-4 border-transparent border-t-white" />
+                          </div>
+                        </div>
+                      </td>
 
-          <tbody className="divide-y divide-slate-100">
-            {RECENT_TICKETS.map((ticket) => (
-              <tr
-                key={ticket.id}
-                className="group transition-colors duration-150 hover:bg-slate-50/70"
-              >
-                {/* Ticket */}
-                <td className="max-w-md px-6 py-4">
-                  <button type="button" className="text-left">
-                    <span className="block text-[10px] font-bold tracking-wide text-slate-400">
-                      #{ticket.id}
-                    </span>
+                      <td className="whitespace-nowrap px-6 py-4">
+                        <span
+                          className={`rounded-full px-2.5 py-1 text-[9px] font-bold uppercase tracking-wide ${priorityClass}`}
+                        >
+                          {ticket.priority}
+                        </span>
+                      </td>
 
-                    <span className="mt-1 block truncate text-sm font-semibold text-slate-800 transition-colors group-hover:text-indigo-600">
-                      {ticket.title}
-                    </span>
-                  </button>
-                </td>
+                      <td className="whitespace-nowrap px-6 py-4">
+                        <span
+                          className={`rounded-full px-2.5 py-1 text-[9px] font-bold uppercase tracking-wide ${statusClass}`}
+                        >
+                          {formatStatusLabel(ticket.status)}
+                        </span>
+                      </td>
 
-                {/* Priority */}
-                <td className="whitespace-nowrap px-6 py-4">
-                  <span
-                    className={`rounded-full px-2.5 py-1 text-[9px] font-bold uppercase tracking-wide ${ticket.priorityClass}`}
-                  >
-                    {ticket.priority}
-                  </span>
-                </td>
+                      <td className="whitespace-nowrap px-6 py-4">
+                        <div className="flex items-center gap-2">
+                          <div
+                            title={ticket.assigneeName || "Unassigned"}
+                            className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 text-[9px] font-bold text-slate-600 shadow-xs"
+                          >
+                            {initials}
+                          </div>
 
-                {/* Status */}
-                <td className="whitespace-nowrap px-6 py-4">
-                  <span
-                    className={`rounded-full px-2.5 py-1 text-[9px] font-bold uppercase tracking-wide ${ticket.statusClass}`}
-                  >
-                    {ticket.status}
-                  </span>
-                </td>
+                          <span className="text-xs font-medium text-slate-600">
+                            {ticket.assigneeName ? "Assigned" : "Unassigned"}
+                          </span>
+                        </div>
+                      </td>
 
-                {/* Assignee */}
-                <td className="whitespace-nowrap px-6 py-4">
-                  <div className="flex items-center gap-2">
-                    <div className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 text-[9px] font-bold text-slate-600">
-                      {ticket.assignee}
+                      <td className="whitespace-nowrap px-6 py-4 text-right">
+                        <div className="inline-flex items-center gap-1.5 text-xs text-slate-400">
+                          <Clock3 size={13} />
+                          {formattedDate}
+                        </div>
+                      </td>
+
+                      <td className="px-4 py-4">
+                        <button
+                          type="button"
+                          aria-label={`Open ${ticket.ticketNumber}`}
+                          className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-300 opacity-0 transition-all group-hover:bg-white group-hover:text-slate-500 group-hover:opacity-100 cursor-pointer"
+                        >
+                          <MoreHorizontal size={16} />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile List */}
+          <div className="divide-y divide-slate-100 md:hidden">
+            {recentList.map((ticket) => {
+              const priorityClass = getPriorityStyles(ticket.priority);
+              const statusClass = getStatusStyles(ticket.status);
+              const formattedDate = new Date(
+                ticket.createdAt,
+              ).toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+              });
+
+              return (
+                <button
+                  key={ticket.id}
+                  type="button"
+                  className="group flex w-full items-center gap-3 px-5 py-4 text-left transition-colors hover:bg-slate-50/70 cursor-pointer"
+                >
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-50 text-slate-400 transition-colors group-hover:bg-indigo-50 group-hover:text-indigo-600">
+                    <CircleDot size={16} />
+                  </div>
+
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-bold text-slate-400">
+                        {ticket.ticketNumber}
+                      </span>
+                      <span className="text-[10px] text-slate-300">•</span>
+                      <span className="text-[10px] text-slate-400">
+                        {formattedDate}
+                      </span>
                     </div>
 
-                    <span className="text-xs font-medium text-slate-600">
-                      Assigned
-                    </span>
+                    {/* Title with Instant White Tooltip */}
+                    <div className="relative group/tooltip mt-1 max-w-full">
+                      <p className="truncate text-sm font-semibold text-slate-800 group-hover:text-indigo-600">
+                        {ticket.title}
+                      </p>
+
+                      {/* White Mobile Tooltip Popup */}
+                      <div className="pointer-events-none absolute left-0 bottom-full z-30 mb-2 hidden w-max max-w-[250px] rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-800 shadow-xl group-hover/tooltip:block">
+                        {ticket.title}
+                        <div className="absolute top-full left-4 -mt-1 border-4 border-transparent border-t-white" />
+                      </div>
+                    </div>
+
+                    <div className="mt-2 flex items-center gap-2">
+                      <span
+                        className={`rounded-full px-2 py-1 text-[9px] font-bold uppercase tracking-wide ${priorityClass}`}
+                      >
+                        {ticket.priority}
+                      </span>
+
+                      <span
+                        className={`rounded-full px-2 py-1 text-[9px] font-bold uppercase tracking-wide ${statusClass}`}
+                      >
+                        {formatStatusLabel(ticket.status)}
+                      </span>
+                    </div>
                   </div>
-                </td>
 
-                {/* Updated */}
-                <td className="whitespace-nowrap px-6 py-4 text-right">
-                  <div className="inline-flex items-center gap-1.5 text-xs text-slate-400">
-                    <Clock3 size={13} />
-                    {ticket.updated}
-                  </div>
-                </td>
+                  <ChevronRight
+                    size={16}
+                    className="shrink-0 text-slate-300 transition-transform group-hover:translate-x-0.5 group-hover:text-indigo-500"
+                  />
+                </button>
+              );
+            })}
+          </div>
+        </>
+      )}
 
-                {/* Action */}
-                <td className="px-4 py-4">
-                  <button
-                    type="button"
-                    aria-label={`Open ${ticket.id}`}
-                    className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-300 opacity-0 transition-all group-hover:bg-white group-hover:text-slate-500 group-hover:opacity-100"
-                  >
-                    <MoreHorizontal size={16} />
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Mobile list */}
-      <div className="divide-y divide-slate-100 md:hidden">
-        {RECENT_TICKETS.map((ticket) => (
-          <button
-            key={ticket.id}
-            type="button"
-            className="group flex w-full items-center gap-3 px-5 py-4 text-left transition-colors hover:bg-slate-50/70"
-          >
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-50 text-slate-400 transition-colors group-hover:bg-indigo-50 group-hover:text-indigo-600">
-              <Clock3 size={16} />
-            </div>
-
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold text-slate-400">
-                  #{ticket.id}
-                </span>
-
-                <span className="text-[10px] text-slate-300">•</span>
-
-                <span className="text-[10px] text-slate-400">
-                  {ticket.updated}
-                </span>
-              </div>
-
-              <p className="mt-1 truncate text-sm font-semibold text-slate-800 group-hover:text-indigo-600">
-                {ticket.title}
-              </p>
-
-              <div className="mt-2 flex items-center gap-2">
-                <span
-                  className={`rounded-full px-2 py-1 text-[9px] font-bold uppercase tracking-wide ${ticket.priorityClass}`}
-                >
-                  {ticket.priority}
-                </span>
-
-                <span
-                  className={`rounded-full px-2 py-1 text-[9px] font-bold uppercase tracking-wide ${ticket.statusClass}`}
-                >
-                  {ticket.status}
-                </span>
-              </div>
-            </div>
-
-            <ChevronRight
-              size={16}
-              className="shrink-0 text-slate-300 transition-transform group-hover:translate-x-0.5 group-hover:text-indigo-500"
-            />
-          </button>
-        ))}
-      </div>
-
-      {/* Footer */}
+      {/* Footer Meta */}
       <div className="border-t border-slate-100 bg-slate-50/40 px-5 py-3.5 sm:px-6">
         <p className="text-[11px] font-medium text-slate-400">
-          Showing the latest {RECENT_TICKETS.length} ticket updates.
+          Showing the latest {recentList.length} ticket updates.
         </p>
       </div>
     </section>

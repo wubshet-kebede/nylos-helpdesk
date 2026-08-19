@@ -21,26 +21,46 @@ axiosClient.interceptors.response.use(
     const method = response.config.method?.toUpperCase();
 
     if (["POST", "PUT", "DELETE", "PATCH"].includes(method || "")) {
-      const successMsg =
-        response.data?.message || "Operation completed successfully";
-
-      toast.success(successMsg);
+      if (!response.config.url?.includes("/auth/refresh")) {
+        const successMsg =
+          response.data?.message || "Operation completed successfully";
+        toast.success(successMsg);
+      }
     }
 
     return response;
   },
 
-  (error: AxiosError<ApiErrorResponse>) => {
+  async (error: AxiosError<ApiErrorResponse>) => {
     const status = error.response?.status;
     const errorData = error.response?.data;
-    const requestUrl = error.config?.url || "";
+    const originalRequest = error.config as typeof error.config & {
+      _retry?: boolean;
+    };
+    const requestUrl = originalRequest?.url || "";
+
     const isAuthCheck = requestUrl.includes("/auth/me");
-    if (status === 401 && !isAuthCheck) {
-      if (!window.location.pathname.startsWith("/login")) {
-        window.location.href = "/login";
+    const isRefreshCall = requestUrl.includes("/auth/refresh");
+    const isLoginCall = requestUrl.includes("/auth/login");
+    if (
+      status === 401 &&
+      !originalRequest._retry &&
+      !isAuthCheck &&
+      !isRefreshCall &&
+      !isLoginCall
+    ) {
+      originalRequest._retry = true;
+
+      try {
+        await axiosClient.post("/auth/refresh");
+        return axiosClient(originalRequest);
+      } catch (refreshError) {
+        if (!window.location.pathname.startsWith("/login")) {
+          window.location.href = "/login";
+        }
+        return Promise.reject(refreshError);
       }
     }
-
     let errorMessage =
       errorData?.detail ||
       errorData?.title ||
@@ -55,7 +75,7 @@ axiosClient.interceptors.response.use(
         errorMessage = firstErrorMsg;
       }
     }
-    if (!(status === 401 && isAuthCheck)) {
+    if (!(status === 401 && (isAuthCheck || isRefreshCall))) {
       toast.error(errorMessage);
     }
 

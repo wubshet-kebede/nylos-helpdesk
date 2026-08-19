@@ -47,14 +47,6 @@ export default function TicketListPage() {
 
         {/* Ticket Meta */}
         <div className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs">
-          <div className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-indigo-500" />
-            <span className="font-semibold text-slate-700">
-              {totalCount} tickets
-            </span>
-          </div>
-
-          {/* Ticket Meta */}
           <div className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs">
             <span className="font-semibold text-slate-700">
               {totalCount} tickets

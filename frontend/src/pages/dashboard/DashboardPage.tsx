@@ -53,7 +53,7 @@ export default function DashboardPage() {
         {/* Page Header */}
         <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.16em] text-indigo-600">
+            <p className="text-xl font-bold  italic tracking-[0.16em] text-indigo-600">
               Workspace overview
             </p>
 
