@@ -1,10 +1,11 @@
 # Nylos Helpdesk
 
-A compact internal issue and ticket tracker built for the Nylos  Software Developer technical assessment.
+A modern internal helpdesk and issue-tracking platform for creating, assigning,
+tracking, and resolving support tickets through a structured workflow.
 
-The application allows team members to create, assign, update, and track support tickets, move tickets through a defined status workflow, and discuss tickets through comments.
-
-> Status: Backend architecture scaffolded. Core features are in progress.
+Built as a technical assessment project with a focus on clean architecture,
+modular boundaries, server-side business rules, and a responsive React
+dashboard.
 
 ## Tech stack
 
