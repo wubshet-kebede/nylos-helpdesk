@@ -6,6 +6,7 @@ import SignUpPage from "./pages/auth/SignUpPage";
 import DashboardPage from "./pages/dashboard/DashboardPage";
 import WorkspaceLayout from "./layouts/WorkspaceLayout";
 import TicketListPage from "./pages/ticket/TicketListPage";
+import ProtectedRoute from "./components/common/ProtectedRoute";
 export const router = createBrowserRouter([
   {
     element: <DefaultLayout />,
@@ -25,16 +26,21 @@ export const router = createBrowserRouter([
     element: <SignUpPage />,
   },
   {
-    path: "app",
-    element: <WorkspaceLayout />,
+    element: <ProtectedRoute />,
     children: [
       {
-        path: "dashboard",
-        element: <DashboardPage />,
-      },
-      {
-        path: "tickets",
-        element: <TicketListPage />,
+        path: "app",
+        element: <WorkspaceLayout />,
+        children: [
+          {
+            path: "dashboard",
+            element: <DashboardPage />,
+          },
+          {
+            path: "tickets",
+            element: <TicketListPage />,
+          },
+        ],
       },
     ],
   },
