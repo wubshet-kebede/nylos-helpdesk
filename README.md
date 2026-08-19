@@ -162,23 +162,23 @@ All contexts connect to the same PostgreSQL database for local development.
 
 ```mermaid
 flowchart TD
-    UI[React Frontend] --> API[ASP.NET Core API Host]
+    UI["React Frontend"] --> API["ASP.NET Core API Host"]
 
-    API --> T[Tickets Module]
-    API --> C[Comments Module]
-    API --> U[Users Module]
+    API --> T["Tickets Module"]
+    API --> C["Comments Module"]
+    API --> U["Users Module"]
 
-    T --> TD[(TicketsDbContext)]
-    C --> CD[(CommentsDbContext)]
-    U --> UD[(UsersDbContext)]
+    T --> TD["Tickets DbContext"]
+    C --> CD["Comments DbContext"]
+    U --> UD["Users DbContext"]
 
-    TD --> DB[(PostgreSQL)]
+    TD --> DB[("PostgreSQL")]
     CD --> DB
     UD --> DB
 
-    T -.-> TC[Tickets Contracts]
-    C -.-> CC[Comments Contracts]
-    U -.-> UC[Users Contracts]
+    T -.-> TC["Tickets Contracts"]
+    C -.-> CC["Comments Contracts"]
+    U -.-> UC["Users Contracts"]
 ```
 ## 🔍 Detailed Component Breakdown (Part 1: Host & Shared)
 
@@ -367,6 +367,122 @@ I intentionally do not use microservices, a distributed message broker, separate
 - [ ] Build React frontend.
 - [ ] Add tests.
 - [ ] Complete API documentation.
+## Getting started
+
+### Prerequisites
+
+- .NET 10 SDK
+- Node.js 20+
+- Docker and Docker Compose
+- Git
+
+### Clone the repository
+
+```bash
+git clone https://github.com/<your-username>/nylos-helpdesk.git
+cd nylos-helpdesk
+```
+
+### Start PostgreSQL
+
+```bash
+cd backend
+cp .env.example .env
+docker compose up -d
+```
+
+### Apply database migrations
+
+```bash
+dotnet ef database update \
+  --project src/Modules/Users/Nylos.Helpdesk.Modules.Users \
+  --startup-project src/Host/Nylos.Helpdesk.Api \
+  --context UsersDbContext
+
+dotnet ef database update \
+  --project src/Modules/Tickets/Nylos.Helpdesk.Modules.Tickets \
+  --startup-project src/Host/Nylos.Helpdesk.Api \
+  --context TicketsDbContext
+
+dotnet ef database update \
+  --project src/Modules/Comments/Nylos.Helpdesk.Modules.Comments \
+  --startup-project src/Host/Nylos.Helpdesk.Api \
+  --context CommentsDbContext
+```
+
+### Start the backend
+
+```bash
+dotnet run --project src/Host/Nylos.Helpdesk.Api
+```
+
+### Start the frontend
+
+Open another terminal:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+## Environment variables
+
+### Backend
+
+Create:
+
+```text
+backend/src/Host/Nylos.Helpdesk.Api/.env
+```
+
+```env
+ConnectionStrings__Postgres=Host=localhost;Port=5432;Database=nylos_helpdesk;Username=nylos;Password=change_me
+```
+
+### Frontend
+
+Create:
+
+```text
+frontend/.env
+```
+
+```env
+VITE_API_BASE_URL=http://localhost:5000
+```
+## Features
+
+- Create, view, update, and delete tickets.
+- Assign tickets to users.
+- Filter tickets by status, priority, and assignee.
+- Sort and paginate tickets.
+- Move tickets through the status workflow:
+  `Open → In Progress → Resolved → Closed`.
+- Reject invalid status transitions server-side.
+- Add and view ticket comments.
+- Validate ticket and comment input.
+- Return consistent API error responses.
+- Seed sample users and tickets.
+- Handle loading, empty, validation, and error states in the frontend.
+
+## Design decisions and trade-offs
+
+### Modular monolith
+
+The backend is a modular monolith rather than a microservices system. Tickets, Comments, and Users have explicit internal boundaries, but they run in one ASP.NET Core host. This keeps deployment and local development simple while preserving a structure that can evolve as the application grows.
+
+### Separate DbContext per module
+
+Each module owns its EF Core `DbContext`, migrations, and PostgreSQL schema. Cross-module relationships are represented by IDs and validated through module contracts rather than direct access to another module's database context.
+
+### Server-side workflow validation
+
+Ticket status transitions are enforced in the backend domain logic instead of relying on the React frontend. This prevents clients from bypassing the workflow rules.
+
+
+### Single PostgreSQL database
+
+All module contexts connect to one PostgreSQL database for simpler local development. The modules still own separate schemas and migrations. Separate databases could be introduced later if independent scaling or deployment becomes necessary.
 
 ## License
 
