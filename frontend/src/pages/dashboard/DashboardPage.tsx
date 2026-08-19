@@ -1,6 +1,8 @@
 import { Activity, CheckCircle2, Clock3, Ticket } from "lucide-react";
 import StatCard from "../../components/dashboard/StatCard";
-
+import TicketActivity from "../../components/dashboard/TicketActivity";
+import MyWork from "../../components/dashboard/MyWork";
+import RecentTickets from "../../components/dashboard/RecentTickets";
 const DASHBOARD_STATS = [
   {
     label: "Total Tickets",
@@ -70,6 +72,15 @@ export default function DashboardPage() {
           {DASHBOARD_STATS.map((stat) => (
             <StatCard key={stat.label} {...stat} />
           ))}
+        </div>
+        {/* Dashboard Content */}
+        <div className="mt-6 grid gap-6 xl:grid-cols-[1.4fr_0.8fr]">
+          <TicketActivity />
+
+          <MyWork />
+        </div>
+        <div className="mt-6">
+          <RecentTickets />
         </div>
       </div>
     </div>

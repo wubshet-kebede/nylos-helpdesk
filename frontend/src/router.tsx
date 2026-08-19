@@ -5,6 +5,7 @@ import LoginPage from "./pages/auth/LoginPage";
 import SignUpPage from "./pages/auth/SignUpPage";
 import DashboardPage from "./pages/dashboard/DashboardPage";
 import WorkspaceLayout from "./layouts/WorkspaceLayout";
+import TicketListPage from "./pages/ticket/TicketListPage";
 export const router = createBrowserRouter([
   {
     element: <DefaultLayout />,
@@ -30,6 +31,10 @@ export const router = createBrowserRouter([
       {
         path: "dashboard",
         element: <DashboardPage />,
+      },
+      {
+        path: "tickets",
+        element: <TicketListPage />,
       },
     ],
   },

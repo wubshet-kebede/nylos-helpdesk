@@ -37,7 +37,7 @@ const SECONDARY_NAVIGATION = [
 
 export default function Sidebar() {
   return (
-    <aside className="flex h-screen w-64 shrink-0 flex-col border-r border-slate-200/80 bg-white">
+    <aside className="sticky top-0 flex  h-screen w-64 shrink-0 flex-col border-r border-slate-200/80 bg-white">
       {/* Brand */}
       <div className="flex h-16 items-center border-b border-slate-100 px-5">
         <NavLink to="/app/dashboard" className="group flex items-center gap-3">
