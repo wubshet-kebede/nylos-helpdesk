@@ -20,7 +20,21 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi();
 builder.Services.AddHttpContextAccessor();
+const string CorsPolicyName = "AllowFrontend";
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(CorsPolicyName, policy =>
+    {
+        policy.WithOrigins(
+                "http://localhost:3000",
+                "http://localhost:5173"
+              )
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
+});
 // Add Modules
 /*
 It holds references to every module's main .csproj so it can invoke their registration hooks
@@ -72,12 +86,14 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 });
 // builder.Services.AddCommentsModule(builder.Configuration);
 var app = builder.Build();
+
+// Seed Default Admin User
+await UsersDbInitializer.SeedAsync(app.Services);
+app.UseCors(CorsPolicyName);
 //
 // Automatically route unhandled exceptions into ProblemDetails format
 //
 app.UseExceptionHandler();
-// Seed Default Admin User
-await UsersDbInitializer.SeedAsync(app.Services);
 // Enable Authentication & Authorization Middleware
 app.UseAuthentication();
 app.UseAuthorization();
@@ -90,6 +106,5 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseAuthorization();
 app.MapControllers();
 app.Run();
