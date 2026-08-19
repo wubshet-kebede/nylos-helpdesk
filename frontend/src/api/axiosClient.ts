@@ -1,5 +1,7 @@
 import axios, { type AxiosError } from "axios";
+import toast from "react-hot-toast";
 import { type ApiErrorResponse } from "./types";
+
 export const axiosClient = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:5231/api/v1",
   headers: {
@@ -8,35 +10,59 @@ export const axiosClient = axios.create({
   withCredentials: true,
   timeout: 10000,
 });
-// REQUEST INTERCEPTOR: Pre-process requests before they leave
+
 axiosClient.interceptors.request.use(
-  (config) => {
-    // You can inspect or mutate headers here if needed (e.g. CSRF tokens or correlation IDs)
-    return config;
-  },
+  (config) => config,
   (error) => Promise.reject(error),
 );
 
-// RESPONSE INTERCEPTOR: Centralize session handling and error parsing
 axiosClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    const method = response.config.method?.toUpperCase();
+
+    if (["POST", "PUT", "DELETE", "PATCH"].includes(method || "")) {
+      const successMsg =
+        response.data?.message || "Operation completed successfully";
+
+      toast.success(successMsg);
+    }
+
+    return response;
+  },
+
   (error: AxiosError<ApiErrorResponse>) => {
     const status = error.response?.status;
     const errorData = error.response?.data;
-
-    if (status === 401) {
-      // Session expired or unauthenticated -> Redirect to login
-      // Prevents endless unauthorized state loops
+    const requestUrl = error.config?.url || "";
+    const isAuthCheck = requestUrl.includes("/auth/me");
+    if (status === 401 && !isAuthCheck) {
       if (!window.location.pathname.startsWith("/login")) {
         window.location.href = "/login";
       }
     }
 
-    // Extract ASP.NET ProblemDetails structure cleanly
+    let errorMessage =
+      errorData?.detail ||
+      errorData?.title ||
+      error.message ||
+      "An unexpected error occurred";
+
+    if (errorData?.errors && Object.keys(errorData.errors).length > 0) {
+      const firstErrorKey = Object.keys(errorData.errors)[0];
+      const firstErrorMsg = errorData.errors[firstErrorKey]?.[0];
+
+      if (firstErrorMsg) {
+        errorMessage = firstErrorMsg;
+      }
+    }
+    if (!(status === 401 && isAuthCheck)) {
+      toast.error(errorMessage);
+    }
+
     const formattedError = {
       status: status || 500,
       title: errorData?.title || "An unexpected error occurred",
-      detail: errorData?.detail || error.message || "Server error",
+      detail: errorMessage,
       validationErrors: errorData?.errors || null,
     };
 

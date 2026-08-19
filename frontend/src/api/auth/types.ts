@@ -4,10 +4,9 @@ export interface LoginRequest {
 }
 
 export interface SignupRequest {
-  firstName: string;
-  lastName: string;
+  fullName: string;
   email: string;
-  passwordHash: string;
+  password: string;
   //   role?: string;
 }
 

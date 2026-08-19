@@ -6,6 +6,7 @@ import * as z from "zod";
 import { Mail, Lock, ArrowRight, AlertCircle } from "lucide-react";
 import Input from "../../components/ui/Input";
 import { authService } from "../../api/auth/authService";
+import { useAuth } from "../../context/AuthContext";
 
 const loginSchema = z.object({
   email: z
@@ -22,7 +23,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 export default function LoginPage() {
   const navigate = useNavigate();
   const [apiError, setApiError] = useState<string | null>(null);
-
+  const { login } = useAuth();
   const {
     register,
     handleSubmit,
@@ -34,7 +35,7 @@ export default function LoginPage() {
   const onFormSubmit = async (data: LoginFormValues) => {
     try {
       setApiError(null);
-      await authService.login({
+      await login({
         email: data.email,
         password: data.password,
       });
