@@ -59,58 +59,127 @@ docker compose down
 docker compose down -v
 ```
 
-# Nylos Helpdesk - Backend Architecture
+## Architecture
 
-Welcome to the backend repository for **Nylos Helpdesk**. This project is built as a **Pragmatic Layered Modular Monolith** targeting .NET 10.
+The backend follows a pragmatic layered modular monolith architecture.
 
----
+The application is developed as one ASP.NET Core API, but the code is divided into three business modules:
 
-## 🏗️ Architecture Overview
+- Tickets
+- Comments
+- Users
 
-When building backend systems, developers often choose between two extremes:
+Each module owns its:
 
-1. **Traditional Monoliths:** Simple to set up initially, but over time, code becomes tangled (a "spaghetti codebase") as features grow.
-2. **Microservices:** Great for massive scale, but brings huge network overhead, complex deployment setups, and hard-to-debug distributed systems.
+- Domain rules.
+- Application use cases.
+- Presentation endpoints.
+- EF Core `DbContext`.
+- PostgreSQL schema.
+- Database migrations.
 
-**My Approach: The Modular Monolith**
+Modules communicate through explicit contracts rather than directly accessing another module's implementation or database context.
 
-- **Single Deployment Unit:** The application compiles into a single executable API host. It runs on one process, starts up quickly, and is inexpensive to host.
-- **Isolated Feature Modules:** Inside the codebase, business domains (`Tickets`, `Comments`, `Users`) are strictly separated into independent projects with clear boundaries.
+```text
+React frontend
+      ↓
+ASP.NET Core API host
+      ↓
+Tickets | Comments | Users modules
+      ↓
+PostgreSQL
+```
 
----
+## Backend structure
 
-## 📁 Complete Folder Structure
-
-````text
-nylos-helpdesk/backend/
+```text
+backend/
+├── Nylos.Helpdesk.slnx
+├── docker-compose.yml
+├── src/
+│   ├── Host/
+│   │   └── Nylos.Helpdesk.Api/
+│   │       ├── Program.cs
+│   │       ├── Controllers/
+│   │       ├── Middleware/
+│   │       └── appsettings.json
+│   │
+│   ├── Modules/
+│   │   ├── Tickets/
+│   │   │   ├── Nylos.Helpdesk.Modules.Tickets/
+│   │   │   │   ├── Application/
+│   │   │   │   ├── Domain/
+│   │   │   │   ├── Infrastructure/
+│   │   │   │   │   ├── Persistence/
+│   │   │   │   │   └── Migrations/
+│   │   │   │   ├── Presentation/
+│   │   │   │   └── TicketsModule.cs
+│   │   │   └── Nylos.Helpdesk.Modules.Tickets.Contracts/
+│   │   │
+│   │   ├── Comments/
+│   │   │   ├── Nylos.Helpdesk.Modules.Comments/
+│   │   │   │   ├── Application/
+│   │   │   │   ├── Domain/
+│   │   │   │   ├── Infrastructure/
+│   │   │   │   ├── Presentation/
+│   │   │   │   └── CommentsModule.cs
+│   │   │   └── Nylos.Helpdesk.Modules.Comments.Contracts/
+│   │   │
+│   │   └── Users/
+│   │       ├── Nylos.Helpdesk.Modules.Users/
+│   │       │   ├── Application/
+│   │       │   ├── Domain/
+│   │       │   ├── Infrastructure/
+│   │       │   ├── Presentation/
+│   │       │   └── UsersModule.cs
+│   │       └── Nylos.Helpdesk.Modules.Users.Contracts/
+│   │
+│   └── Shared/
+│       ├── Nylos.Helpdesk.Shared.Abstractions/
+│       └── Nylos.Helpdesk.Shared.Infrastructure/
 │
-├── Nylos.Helpdesk.slnx                   # Solution file managing all C# projects
-│
-└── src/
-    ├── Host/                             # Web Server & Entry Point
-    │   └── Nylos.Helpdesk.Api/           # ASP.NET Core API application
-    │
-    ├── Shared/                           # Cross-module reusable components
-    │   ├── Nylos.Helpdesk.Shared.Abstractions/    # Pure C# contracts, base types & interfaces
-    │   └── Nylos.Helpdesk.Shared.Infrastructure/  # EF Core helpers, global middleware & policies
-    │
-    └── Modules/                          # Business Domain Modules
-        │
-        ├── Tickets/                      # Helpdesk Ticket Management
-        │   ├── Nylos.Helpdesk.Modules.Tickets            # Private implementation
-        │   └── Nylos.Helpdesk.Modules.Tickets.Contracts  # Public interface for outside modules
-        │
-        ├── Comments/                     # Ticket Discussion & Comments
-        │   ├── Nylos.Helpdesk.Modules.Comments           # Private implementation
-        │   └── Nylos.Helpdesk.Modules.Comments.Contracts # Public interface for outside modules
-        │
-        └── Users/                        # Authentication & User Management
-            ├── Nylos.Helpdesk.Modules.Users              # Private implementation
-            └── Nylos.Helpdesk.Modules.Users.Contracts    # Public interface for outside modules
+└── tests/
+```
+### Backend responsibilities
 
+- `Host`: Application startup, dependency injection, middleware, and module registration.
+- `Tickets`: Ticket CRUD, assignment, filtering, pagination, and status workflow.
+- `Comments`: Ticket comment creation and retrieval.
+- `Users`: User management and assignee lookup.
+- `Contracts`: Public module interfaces and DTOs used for module-to-module communication.
+- `Shared.Abstractions`: Small cross-cutting abstractions.
+- `Shared.Infrastructure`: Shared technical services such as error handling and observability.
+### Persistence ownership
 
----
+Each module owns its own EF Core persistence boundary:
 
+- `TicketsDbContext` → `tickets` schema and migrations.
+- `CommentsDbContext` → `comments` schema and migrations.
+- `UsersDbContext` → `users` schema and migrations.
+
+All contexts connect to the same PostgreSQL database for local development.
+## System overview
+
+```mermaid
+flowchart TD
+    UI[React Frontend] --> API[ASP.NET Core API Host]
+
+    API --> T[Tickets Module]
+    API --> C[Comments Module]
+    API --> U[Users Module]
+
+    T --> TD[(TicketsDbContext)]
+    C --> CD[(CommentsDbContext)]
+    U --> UD[(UsersDbContext)]
+
+    TD --> DB[(PostgreSQL)]
+    CD --> DB
+    UD --> DB
+
+    T -.-> TC[Tickets Contracts]
+    C -.-> CC[Comments Contracts]
+    U -.-> UC[Users Contracts]
+```
 ## 🔍 Detailed Component Breakdown (Part 1: Host & Shared)
 
 ### 1. `src/Host/` (The Application Gateway)
