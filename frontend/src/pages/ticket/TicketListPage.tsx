@@ -3,28 +3,16 @@ import { Plus, Ticket } from "lucide-react";
 import TicketFilterBar from "../../components/tickets/TicketFilterBar";
 import TicketTable from "../../components/tickets/TicketTable";
 import TicketPagination from "../../components/tickets/TicketPagination";
-import { useGetTickets } from "../../hooks/useTicketsQuery";
 import type { TicketFilters } from "../../api/tickets/types";
-
+import { useTicketStats } from "../../hooks/useTicketsStats";
 export default function TicketListPage() {
   const [filters, setFilters] = useState<TicketFilters>({
     page: 1,
     pageSize: 10,
   });
 
-  const { data, isLoading } = useGetTickets(filters);
-
-  // Unpack paginated response securely
-  const tickets = data?.items || [];
-  const totalCount = data?.totalCount || 0;
-
-  // Compute status counts from loaded items
-  const openCount = tickets.filter((t) => t.status === "Open").length;
-  const inProgressCount = tickets.filter(
-    (t) => t.status === "InProgress",
-  ).length;
-  const resolvedCount = tickets.filter((t) => t.status === "Resolved").length;
-
+  const { tickets, totalCount, open, inProgress, resolved, closed, isLoading } =
+    useTicketStats(filters);
   return (
     <div className="min-w-0">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
@@ -66,11 +54,16 @@ export default function TicketListPage() {
             </span>
           </div>
 
-          <div className="h-3 w-px bg-slate-200" />
-
-          <span className="text-slate-400">{openCount} open</span>
-          <span className="text-slate-400">{inProgressCount} in progress</span>
-          <span className="text-slate-400">{resolvedCount} resolved</span>
+          {/* Ticket Meta */}
+          <div className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs">
+            <span className="font-semibold text-slate-700">
+              {totalCount} tickets
+            </span>
+            <span className="text-slate-400">{open} open</span>
+            <span className="text-slate-400">{inProgress} in progress</span>
+            <span className="text-slate-400">{resolved} resolved</span>
+            <span className="text-slate-400">{closed} closed</span>
+          </div>
         </div>
 
         {/* Toolbar */}

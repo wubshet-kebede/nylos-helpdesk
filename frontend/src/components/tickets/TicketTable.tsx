@@ -135,7 +135,7 @@ export default function TicketTable({ tickets, isLoading }: TicketTableProps) {
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="text-[10px] font-bold tracking-wide text-slate-400">
-                      #{ticket.id.substring(0, 8)}
+                      #{ticket.ticketNumber}
                     </span>
                     <span className="h-1 w-1 rounded-full bg-slate-300" />
                     <span className="text-[10px] text-slate-400">Issue</span>

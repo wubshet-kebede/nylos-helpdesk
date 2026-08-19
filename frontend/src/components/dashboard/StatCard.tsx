@@ -3,7 +3,7 @@ import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 
 interface StatCardProps {
   label: string;
-  value: number;
+  value: number | string;
   change: number;
   description: string;
   icon: LucideIcon;
