@@ -1,6 +1,7 @@
 import { Plus, Ticket } from "lucide-react";
 import TicketFilterBar from "../../components/tickets/TicketFilterBar";
 import TicketTable from "../../components/tickets/TicketTable";
+import TicketPagination from "../../components/tickets/TicketPagination";
 export default function TicketListPage() {
   return (
     <div className="min-w-0">
@@ -61,9 +62,13 @@ export default function TicketListPage() {
         </div>
 
         {/* Ticket Content */}
-        {/* Ticket Content */}
+
         <div className="mt-4">
           <TicketTable />
+        </div>
+
+        <div className="mt-3 rounded-2xl border border-slate-200/80 bg-white shadow-sm">
+          <TicketPagination />
         </div>
       </div>
     </div>
