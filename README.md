@@ -1,11 +1,9 @@
 # Nylos Helpdesk
 
-A modern internal helpdesk and issue-tracking platform for creating, assigning,
-tracking, and resolving support tickets through a structured workflow.
+A modern internal helpdesk and issue-tracking platform designed to help teams organize, assign, track, and resolve support issues through a clear and structured workflow.
 
-Built as a technical assessment project with a focus on clean architecture,
-modular boundaries, server-side business rules, and a responsive React
-dashboard.
+Nylos Helpdesk provides a centralized workspace where team members can create and manage tickets, assign work to responsible users, monitor ticket progress, and collaborate through ticket discussions. The platform combines a responsive React dashboard with a modular ASP.NET Core backend to provide a maintainable foundation for team support operations.
+
 
 ## Tech stack
 
