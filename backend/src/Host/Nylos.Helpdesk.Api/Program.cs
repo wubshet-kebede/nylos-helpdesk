@@ -104,7 +104,7 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
-
-app.UseHttpsRedirection();
+//Comment out HttpsRedirection during local HTTP testing to prevent cookie-dropping redirects
+//app.UseHttpsRedirection();
 app.MapControllers();
 app.Run();

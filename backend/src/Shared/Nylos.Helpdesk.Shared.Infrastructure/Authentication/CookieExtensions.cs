@@ -22,8 +22,8 @@ public static class CookieExtensions
         response.Cookies.Append("refreshToken", refreshToken, new CookieOptions
         {
             HttpOnly = true,
-            Secure = true,
-            SameSite = SameSiteMode.Strict,
+            Secure = false,
+            SameSite = SameSiteMode.Lax,
             Path = "/api/v1/auth/refresh", // Restrict cookie transmission to ONLY the refresh endpoint
             Expires = DateTimeOffset.UtcNow.AddDays(expireDays)
         });
@@ -35,8 +35,8 @@ public static class CookieExtensions
         var options = new CookieOptions
         {
             HttpOnly = true,
-            Secure = true,
-            SameSite = SameSiteMode.Strict
+            Secure = false,
+            SameSite = SameSiteMode.Lax
         };
 
         response.Cookies.Delete("accessToken", options);

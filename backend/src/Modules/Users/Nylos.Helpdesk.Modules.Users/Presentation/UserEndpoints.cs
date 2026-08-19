@@ -1,10 +1,12 @@
 using MediatR;
 using Microsoft.AspNetCore.Builder;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Nylos.Helpdesk.Modules.Users.Application.Commands.LoginUser;
 using Nylos.Helpdesk.Modules.Users.Application.Commands.RefreshUserToken;
 using Nylos.Helpdesk.Modules.Users.Application.Commands.RegisterUser;
+using Nylos.Helpdesk.Modules.Users.Application.Queries.GetCurrentUser;
 using Nylos.Helpdesk.Shared.Infrastructure.Authentication;
 using Nylos.Helpdesk.Modules.Users.Presentation.Contracts;
 
@@ -15,26 +17,26 @@ public static class UserEndpoints
     public static void MapUserEndpoints(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup("/api/v1/auth").WithTags("Auth");
-       /// MapPost creates an HTTP POST endpoint
-       /// ISender sender this is mediatR
-       group.MapPost("/register",
-    async (
-        RegisterUserRequest request,
-        ISender sender) =>
-    {
-        var command = new RegisterUserCommand(
-            request.Email,
-            request.FullName,
-            request.Password
-        );
+        /// MapPost creates an HTTP POST endpoint
+        /// ISender sender this is mediatR
+        group.MapPost("/register",
+     async (
+         RegisterUserRequest request,
+         ISender sender) =>
+     {
+         var command = new RegisterUserCommand(
+             request.Email,
+             request.FullName,
+             request.Password
+         );
 
-        var userId = await sender.Send(command);
+         var userId = await sender.Send(command);
 
-        return Results.Created(
-            $"/api/v1/users/{userId}",
-            new { id = userId });
-    });
-        group.MapPost("/login", 
+         return Results.Created(
+             $"/api/v1/users/{userId}",
+             new { id = userId });
+     });
+        group.MapPost("/login",
         async (
             LoginUserRequest request,
             ISender sender) =>
@@ -45,7 +47,8 @@ public static class UserEndpoints
             );
             var success = await sender.Send(command);
             return success ? Results.Ok(new { message = "Logged in successfully" }) : Results.Unauthorized();
-        }); 
+        });
+
         group.MapPost("/refresh", async (ISender sender) =>
         {
             var success = await sender.Send(new RefreshTokenCommand());
@@ -57,5 +60,29 @@ public static class UserEndpoints
             context.Response.ClearAuthCookies();
             return Results.Ok(new { message = "Logged out successfully" });
         });
+        //me handler 
+        group.MapGet("/me", async (
+    ClaimsPrincipal userClaims,
+    ISender sender,
+    CancellationToken ct) =>
+{
+    var userIdClaim = userClaims.FindFirstValue(ClaimTypes.NameIdentifier)
+                   ?? userClaims.FindFirstValue("sub");
+
+    if (!Guid.TryParse(userIdClaim, out var userId))
+    {
+        return Results.Unauthorized();
+    }
+
+    var query = new GetCurrentUserQuery(userId);
+    var currentUser = await sender.Send(query, ct);
+
+    return Results.Ok(currentUser);
+})
+.WithName("GetCurrentUser")
+.RequireAuthorization()
+.Produces<CurrentUserDto>(StatusCodes.Status200OK)
+.ProducesProblem(StatusCodes.Status401Unauthorized)
+.ProducesProblem(StatusCodes.Status404NotFound);
     }
 }
