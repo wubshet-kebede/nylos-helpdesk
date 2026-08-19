@@ -37,7 +37,8 @@ internal sealed class LoginUserCommandHandler : IRequestHandler<LoginUserCommand
 
         if (user is null || !_passwordHasher.VerifyPassword(request.Password, user.PasswordHash))
         {
-            return false;
+            // Throwing this triggers GlobalExceptionHandler -> returns ProblemDetails with detail message
+            throw new UnauthorizedAccessException("Invalid email or password.");
         }
 
         var accessToken = _jwtProvider.GenerateAccessToken(user);

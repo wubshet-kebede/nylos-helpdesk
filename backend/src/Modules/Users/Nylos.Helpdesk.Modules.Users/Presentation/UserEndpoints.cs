@@ -33,8 +33,8 @@ public static class UserEndpoints
          var userId = await sender.Send(command);
 
          return Results.Created(
-             $"/api/v1/users/{userId}",
-             new { id = userId });
+         $"/api/v1/users/{userId}",
+         new { id = userId, message = "Account created successfully" });
      });
         group.MapPost("/login",
         async (
@@ -45,8 +45,9 @@ public static class UserEndpoints
                 request.Email,
                 request.Password
             );
-            var success = await sender.Send(command);
-            return success ? Results.Ok(new { message = "Logged in successfully" }) : Results.Unauthorized();
+            await sender.Send(command);
+
+            return Results.Ok(new { message = "Logged in successfully" });
         });
 
         group.MapPost("/refresh", async (ISender sender) =>
