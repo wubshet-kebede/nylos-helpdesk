@@ -4,6 +4,7 @@ import * as z from "zod";
 import { ArrowRight, FileText, Flag, Sparkles } from "lucide-react";
 
 import Input from "../ui/Input";
+import { useCreateTicket } from "../../hooks/useTicketsQuery";
 
 const createTicketSchema = z.object({
   title: z
@@ -53,6 +54,9 @@ const PRIORITIES = [
 ] as const;
 
 export default function CreateTicketForm({ onSuccess }: CreateTicketFormProps) {
+  // Inject TanStack Query mutation hook
+  const { mutateAsync: createTicket } = useCreateTicket();
+
   const {
     register,
     handleSubmit,
@@ -71,11 +75,11 @@ export default function CreateTicketForm({ onSuccess }: CreateTicketFormProps) {
 
   const onSubmit = async (data: CreateTicketFormValues) => {
     try {
-      console.log("Creating ticket:", data);
-      // await ticketService.createTicket(data);
+      // Executes API request and invalidates ticket cache automatically
+      await createTicket(data);
       onSuccess();
-    } catch (error) {
-      console.error("Failed to create ticket:", error);
+    } catch {
+      // Axios interceptor handles toast notifications automatically
     }
   };
 
@@ -181,7 +185,7 @@ export default function CreateTicketForm({ onSuccess }: CreateTicketFormProps) {
         <button
           type="button"
           onClick={onSuccess}
-          className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50 hover:text-slate-900 shadow-sm"
+          className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-bold text-slate-600 transition hover:bg-slate-50 hover:text-slate-900 shadow-sm cursor-pointer"
         >
           Dismiss
         </button>
@@ -189,7 +193,7 @@ export default function CreateTicketForm({ onSuccess }: CreateTicketFormProps) {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="group inline-flex items-center gap-1.5 rounded-xl bg-slate-950 px-5 py-2.5 text-xs font-bold text-white transition hover:bg-slate-900 disabled:cursor-not-allowed disabled:opacity-50 shadow-md shadow-slate-950/10"
+          className="group inline-flex items-center gap-1.5 rounded-xl bg-slate-950 px-5 py-2.5 text-xs font-bold text-white transition hover:bg-slate-900 disabled:cursor-not-allowed disabled:opacity-50 shadow-md shadow-slate-950/10 cursor-pointer"
         >
           {isSubmitting ? (
             <>
