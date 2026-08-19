@@ -11,26 +11,38 @@ obj/
 *.userosscache
 *.sln.docstates
 
+# =========================
 # ASP.NET Core
+# =========================
+
 appsettings.Development.json
 
 # =========================
-# Node / React
+# Node / React / Frontend
 # =========================
 
 node_modules/
 dist/
+dist-ssr/
 build/
+.vite/
 .next/
 .nuxt/
 .output/
+*.local
 
+# =========================
 # Environment variables
+# =========================
+
 .env
 .env.*
 !.env.example
 
+# =========================
 # Local authentication cookies
+# =========================
+
 *.cookies
 cookies.txt
 
@@ -62,9 +74,9 @@ coverage/
 TestResults/
 
 # =========================
-# Local database / Docker
+# Local database
 # =========================
 
 *.db
 *.sqlite
-*.sqlite3s
+*.sqlite3
