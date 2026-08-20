@@ -42,8 +42,10 @@ axiosClient.interceptors.response.use(
     const isAuthCheck = requestUrl.includes("/auth/me");
     const isRefreshCall = requestUrl.includes("/auth/refresh");
     const isLoginCall = requestUrl.includes("/auth/login");
+
     if (
       status === 401 &&
+      originalRequest &&
       !originalRequest._retry &&
       !isAuthCheck &&
       !isRefreshCall &&
@@ -52,8 +54,11 @@ axiosClient.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
+        // Execute refresh endpoint
         await axiosClient.post("/auth/refresh");
-        return axiosClient(originalRequest);
+
+        // Explicitly re-apply original headers and config
+        return axiosClient.request(originalRequest);
       } catch (refreshError) {
         if (!window.location.pathname.startsWith("/login")) {
           window.location.href = "/login";
@@ -61,6 +66,7 @@ axiosClient.interceptors.response.use(
         return Promise.reject(refreshError);
       }
     }
+
     let errorMessage =
       errorData?.detail ||
       errorData?.title ||
@@ -75,6 +81,7 @@ axiosClient.interceptors.response.use(
         errorMessage = firstErrorMsg;
       }
     }
+
     if (!(status === 401 && (isAuthCheck || isRefreshCall))) {
       toast.error(errorMessage);
     }
