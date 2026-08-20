@@ -37,10 +37,20 @@ public class Ticket
         CreatedAt = DateTime.UtcNow;
     }
 
-    public void AssignTo(Guid assigneeId)
+    public void AssignToPeer(Guid assigneeID)
     {
-        AssigneeId = assigneeId;
-        UpdatedAt = DateTime.UtcNow;
+        if (assigneeID == Guid.Empty)
+            throw new ArgumentException("Agent ID must be a valid GUID.", nameof(assigneeID));
+
+        AssigneeId = assigneeID;
+        if (Status == TicketStatus.Open)
+        {
+            MoveToStatus(TicketStatus.InProgress);
+        }
+        else
+        {
+            UpdatedAt = DateTime.UtcNow;
+        }
     }
     public void UpdateDetails(string title, string description, TicketPriority priority)
     {

@@ -1,11 +1,9 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Nylos.Helpdesk.Modules.Tickets.Infrastructure.Persistence;
-using Nylos.Helpdesk.Shared.Abstractions.Exceptions;
-
 namespace Nylos.Helpdesk.Modules.Tickets.Application.Commands.AssignTicket;
 
-internal sealed class AssignTicketCommandHandler : IRequestHandler<AssignTicketCommand>
+public sealed class AssignTicketCommandHandler : IRequestHandler<AssignTicketCommand>
 {
     private readonly TicketsDbContext _dbContext;
 
@@ -21,11 +19,15 @@ internal sealed class AssignTicketCommandHandler : IRequestHandler<AssignTicketC
 
         if (ticket is null)
         {
-            throw new NotFoundException($"Ticket with ID {request.TicketId} was not found.");
+            throw new KeyNotFoundException($"Ticket with ID '{request.TicketId}' was not found.");
         }
 
-        // Domain method assigns agent and automatically sets Status to InProgress
-        ticket.AssignTo(request.AssigneeId);
+        if (ticket.CreatedById != request.CurrentUserId)
+        {
+            throw new UnauthorizedAccessException("Only the ticket creator can assign this ticket.");
+        }
+
+        ticket.AssignToPeer(request.AssigneeId);
 
         await _dbContext.SaveChangesAsync(cancellationToken);
     }

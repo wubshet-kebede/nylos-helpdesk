@@ -6,6 +6,8 @@ namespace Nylos.Helpdesk.Modules.Tickets.Application.Queries.GetTickets;
 public record GetTicketsQuery(
     TicketStatus? Status = null,
     TicketPriority? Priority = null,
+    Guid? AssigneeId = null,
+    string? Search = null,
     int Page = 1,
     int PageSize = 10
 ) : IRequest<PagedResult<TicketSummaryDto>>;

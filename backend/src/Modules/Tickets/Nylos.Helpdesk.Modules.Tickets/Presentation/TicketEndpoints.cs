@@ -125,21 +125,33 @@ public static class TicketEndpoints
         .ProducesProblem(StatusCodes.Status404NotFound)
         .ProducesProblem(StatusCodes.Status401Unauthorized);
 
-        // Assign Agent
+        // Assign Peer creator only can assing peer 
         group.MapPatch("/{id:guid}/assign", async (
             Guid id,
             AssignTicketRequest request,
+            ClaimsPrincipal user,
             ISender sender,
             CancellationToken ct) =>
         {
-            var command = new AssignTicketCommand(id, request.AgentId);
+            var userIdClaim = user.FindFirstValue(ClaimTypes.NameIdentifier)
+                           ?? user.FindFirstValue("sub");
+
+            if (!Guid.TryParse(userIdClaim, out var currentUserId))
+            {
+                return Results.Unauthorized();
+            }
+
+            var command = new AssignTicketCommand(id, request.AssigneeId, currentUserId);
             await sender.Send(command, ct);
+
             return Results.NoContent();
         })
         .WithName("AssignTicket")
         .Produces(StatusCodes.Status204NoContent)
-        .ProducesProblem(StatusCodes.Status404NotFound)
-        .ProducesProblem(StatusCodes.Status401Unauthorized);
+        .ProducesProblem(StatusCodes.Status400BadRequest)
+        .ProducesProblem(StatusCodes.Status401Unauthorized)
+        .ProducesProblem(StatusCodes.Status403Forbidden)
+        .ProducesProblem(StatusCodes.Status404NotFound);
 
         // delete ticket 
         group.MapDelete("/{id:guid}", async (

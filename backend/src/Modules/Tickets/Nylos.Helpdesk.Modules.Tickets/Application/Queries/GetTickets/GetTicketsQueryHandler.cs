@@ -25,10 +25,23 @@ internal sealed class GetTicketsQueryHandler
         {
             query = query.Where(t => t.Status == request.Status.Value);
         }
-
+        // status filter 
         if (request.Priority.HasValue)
         {
             query = query.Where(t => t.Priority == request.Priority.Value);
+        }
+        //  Assignee Filter 
+        if (request.AssigneeId.HasValue)
+        {
+            query = query.Where(t => t.AssigneeId == request.AssigneeId.Value);
+        }
+        if (!string.IsNullOrWhiteSpace(request.Search))
+        {
+            var searchTerm = request.Search.Trim().ToLower();
+            query = query.Where(t =>
+                t.Title.ToLower().Contains(searchTerm) ||
+                t.Description.ToLower().Contains(searchTerm) ||
+                t.TicketNumber.ToLower().Contains(searchTerm));
         }
 
         var totalCount = await query.CountAsync(cancellationToken);
@@ -37,7 +50,7 @@ internal sealed class GetTicketsQueryHandler
         var pageSize = request.PageSize switch
         {
             < 1 => 10,
-            > 100 => 100, // Clamp maximum page size to prevent memory overload
+            > 100 => 100,
             _ => request.PageSize
         };
 

@@ -2,7 +2,8 @@ using MediatR;
 
 namespace Nylos.Helpdesk.Modules.Tickets.Application.Commands.AssignTicket;
 
-public record AssignTicketCommand(
+public sealed record AssignTicketCommand(
     Guid TicketId,
-    Guid AssigneeId
+    Guid AssigneeId,
+    Guid CurrentUserId
 ) : IRequest;
