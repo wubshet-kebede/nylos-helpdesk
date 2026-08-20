@@ -67,7 +67,7 @@ export const ticketsService = {
     id: string,
     data: AssignTicketRequest,
   ): Promise<{ message: string }> => {
-    const response = await axiosClient.post<{ message: string }>(
+    const response = await axiosClient.patch<{ message: string }>(
       `/tickets/${id}/assign`,
       data,
     );

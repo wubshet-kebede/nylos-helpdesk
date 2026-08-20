@@ -6,6 +6,7 @@ import {
   Pencil,
   Trash2,
   AlertTriangle,
+  UserPlus,
 } from "lucide-react";
 import type {
   TicketDto,
@@ -15,7 +16,9 @@ import type {
 import { useState, useEffect, useRef } from "react";
 import EditTicketModal from "./EditTicketModal";
 import Modal from "../common/Modal";
-import { useDeleteTicket } from "../../hooks/useTicketsQuery";
+import UserAssignModal, { type WorkspaceUser } from "./UserAssignModal";
+import { useDeleteTicket, useAssignTicket } from "../../hooks/useTicketsQuery";
+import { useGetUsers } from "../../hooks/useUsersQuery";
 
 interface TicketTableProps {
   tickets: TicketDto[];
@@ -67,13 +70,19 @@ const getInitials = (name?: string | null) => {
 };
 
 export default function TicketTable({ tickets, isLoading }: TicketTableProps) {
+  // State management for actions
   const [selectedTicket, setSelectedTicket] = useState<TicketDto | null>(null);
   const [ticketToDelete, setTicketToDelete] = useState<TicketDto | null>(null);
+  const [ticketToAssign, setTicketToAssign] = useState<TicketDto | null>(null);
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
 
   const menuRef = useRef<HTMLDivElement | null>(null);
+
+  // Queries & Mutations
   const { mutateAsync: deleteTicket, isPending: isDeleting } =
     useDeleteTicket();
+  const { mutateAsync: assignTicket } = useAssignTicket();
+  const { data: users = [], isLoading: isLoadingUsers } = useGetUsers();
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -91,6 +100,19 @@ export default function TicketTable({ tickets, isLoading }: TicketTableProps) {
     try {
       await deleteTicket(ticketToDelete.id);
       setTicketToDelete(null);
+    } catch {
+      // Handled by Axios Interceptor
+    }
+  };
+
+  const handleUserSelect = async (user: WorkspaceUser) => {
+    if (!ticketToAssign) return;
+    try {
+      await assignTicket({
+        ticketId: ticketToAssign.id,
+        AssigneeId: user.id,
+      });
+      setTicketToAssign(null);
     } catch {
       // Handled by Axios Interceptor
     }
@@ -150,7 +172,6 @@ export default function TicketTable({ tickets, isLoading }: TicketTableProps) {
         {tickets.map((ticket) => {
           const priorityClass = getPriorityStyles(ticket.priority);
           const statusClass = getStatusStyles(ticket.status);
-          const assigneeInitials = getInitials(ticket.assigneeName);
           const formattedDate = new Date(ticket.createdAt).toLocaleDateString(
             "en-US",
             {
@@ -158,6 +179,9 @@ export default function TicketTable({ tickets, isLoading }: TicketTableProps) {
               day: "numeric",
             },
           );
+          const assignedUser = users.find((u) => u.id === ticket.assigneeId);
+          const assigneeName = assignedUser ? assignedUser.name : "Unassigned";
+          const assigneeInitials = getInitials(assigneeName);
 
           const isMenuOpen = activeMenuId === ticket.id;
 
@@ -200,13 +224,16 @@ export default function TicketTable({ tickets, isLoading }: TicketTableProps) {
                   </span>
                 </div>
 
-                <div className="flex items-center">
+                <div className="flex items-center gap-2">
                   <div
-                    title={ticket.assigneeName || "Unassigned"}
+                    title={assigneeName}
                     className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-slate-100 text-[9px] font-bold text-slate-600 shadow-sm"
                   >
                     {assigneeInitials}
                   </div>
+                  <span className="hidden lg:inline text-xs font-semibold text-slate-600 truncate max-w-[90px]">
+                    {assigneeName}
+                  </span>
                 </div>
 
                 <div className="flex items-center gap-1.5 text-xs text-slate-400">
@@ -229,7 +256,8 @@ export default function TicketTable({ tickets, isLoading }: TicketTableProps) {
                   </button>
 
                   {isMenuOpen && (
-                    <div className="absolute right-0 top-9 z-20 w-36 rounded-xl border border-slate-200/80 bg-white p-1 shadow-lg ring-1 ring-slate-950/5 animate-in fade-in zoom-in-95 duration-100">
+                    <div className="absolute right-0 top-9 z-20 w-40 rounded-xl border border-slate-200/80 bg-white p-1 shadow-lg ring-1 ring-slate-950/5 animate-in fade-in zoom-in-95 duration-100">
+                      {/* Edit Option */}
                       <button
                         type="button"
                         onClick={(e) => {
@@ -243,6 +271,21 @@ export default function TicketTable({ tickets, isLoading }: TicketTableProps) {
                         <span>Edit Ticket</span>
                       </button>
 
+                      {/* Assign Option */}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setTicketToAssign(ticket);
+                          setActiveMenuId(null);
+                        }}
+                        className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-xs font-semibold text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors cursor-pointer"
+                      >
+                        <UserPlus size={13} className="text-slate-400" />
+                        <span>Assign Ticket</span>
+                      </button>
+
+                      {/* Delete Option */}
                       <button
                         type="button"
                         onClick={(e) => {
@@ -363,6 +406,15 @@ export default function TicketTable({ tickets, isLoading }: TicketTableProps) {
             </div>
           </div>
         </Modal>
+      )}
+      {ticketToAssign && (
+        <UserAssignModal
+          isOpen={Boolean(ticketToAssign)}
+          onClose={() => setTicketToAssign(null)}
+          users={users}
+          isLoadingUsers={isLoadingUsers}
+          onSelectUser={handleUserSelect}
+        />
       )}
     </section>
   );

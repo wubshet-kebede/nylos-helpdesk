@@ -4,8 +4,9 @@ import type {
   TicketFilters,
   CreateTicketRequest,
   TicketStatus,
+  UpdateTicketRequest,
 } from "../api/tickets/types";
-import { type UpdateTicketRequest } from "../api/tickets/types";
+
 // Query Key Factory
 export const ticketKeys = {
   all: ["tickets"] as const,
@@ -13,7 +14,7 @@ export const ticketKeys = {
   detail: (id: string) => ["tickets", "detail", id] as const,
 };
 
-// Hook to fetch tickets
+// Hook to fetch tickets (filters is now optional)
 export function useGetTickets(filters?: TicketFilters) {
   return useQuery({
     queryKey: ticketKeys.list(filters),
@@ -21,7 +22,7 @@ export function useGetTickets(filters?: TicketFilters) {
   });
 }
 
-//  Hook to create a ticket
+// Hook to create a ticket
 export function useCreateTicket() {
   const queryClient = useQueryClient();
 
@@ -34,7 +35,7 @@ export function useCreateTicket() {
   });
 }
 
-//  Hook to update ticket status
+// Hook to update ticket status
 export function useUpdateTicketStatus() {
   const queryClient = useQueryClient();
 
@@ -46,6 +47,8 @@ export function useUpdateTicketStatus() {
     },
   });
 }
+
+// Hook to update ticket details
 export const useUpdateTicket = () => {
   const queryClient = useQueryClient();
 
@@ -53,18 +56,42 @@ export const useUpdateTicket = () => {
     mutationFn: ({ id, ...data }: { id: string } & UpdateTicketRequest) =>
       ticketsService.updateTicket({ id, data }),
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["tickets"] });
-      queryClient.invalidateQueries({ queryKey: ["ticket", variables.id] });
+      queryClient.invalidateQueries({ queryKey: ticketKeys.all });
+      queryClient.invalidateQueries({
+        queryKey: ticketKeys.detail(variables.id),
+      });
     },
   });
 };
+
+// Hook to delete ticket
 export const useDeleteTicket = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (id: string) => ticketsService.deleteTicket(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["tickets"] });
+      queryClient.invalidateQueries({ queryKey: ticketKeys.all });
+    },
+  });
+};
+
+// Hook to assign ticket
+export const useAssignTicket = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      ticketId,
+      AssigneeId,
+    }: {
+      ticketId: string;
+      AssigneeId: string;
+    }) => {
+      return ticketsService.assignTicket(ticketId, { AssigneeId });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ticketKeys.all });
     },
   });
 };

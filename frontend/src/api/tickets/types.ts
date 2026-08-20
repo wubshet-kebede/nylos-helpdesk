@@ -34,7 +34,7 @@ export interface UpdateTicketStatusRequest {
 }
 
 export interface AssignTicketRequest {
-  assignedToUserId: string;
+  AssigneeId: string;
 }
 
 export interface TicketFilters {
@@ -43,6 +43,7 @@ export interface TicketFilters {
   search?: string;
   page?: number;
   pageSize?: number;
+  assigneeId?: string;
 }
 export interface UpdateTicketRequest {
   title: string;
