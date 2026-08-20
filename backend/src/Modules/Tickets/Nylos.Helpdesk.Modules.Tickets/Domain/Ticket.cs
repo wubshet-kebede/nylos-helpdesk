@@ -65,7 +65,18 @@ public class Ticket
         Priority = priority;
         UpdatedAt = DateTime.UtcNow;
     }
+    /// <summary>
+    /// Resolves the ticket, ensuring only the assigned agent can execute this action.
+    /// </summary>
+    public void Resolve(Guid currentUserId)
+    {
+        if (!AssigneeId.HasValue || AssigneeId.Value != currentUserId)
+        {
+            throw new InvalidOperationException("Only the assigned user can resolve this ticket.");
+        }
 
+        MoveToStatus(TicketStatus.Resolved);
+    }
     /// <summary>
     /// Invalid status transitions are rejected.
     /// </summary>

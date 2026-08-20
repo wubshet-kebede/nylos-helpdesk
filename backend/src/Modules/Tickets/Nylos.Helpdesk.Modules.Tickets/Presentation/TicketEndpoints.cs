@@ -111,19 +111,29 @@ public static class TicketEndpoints
 
         // Update Status
         group.MapPatch("/{id:guid}/status", async (
-            Guid id,
-            UpdateTicketStatusRequest request,
-            ISender sender,
-            CancellationToken ct) =>
-        {
-            var command = new UpdateTicketStatusCommand(id, request.NewStatus);
-            await sender.Send(command, ct);
-            return Results.NoContent();
-        })
-        .WithName("UpdateTicketStatus")
-        .Produces(StatusCodes.Status204NoContent)
-        .ProducesProblem(StatusCodes.Status404NotFound)
-        .ProducesProblem(StatusCodes.Status401Unauthorized);
+    Guid id,
+    UpdateTicketStatusRequest request,
+    ClaimsPrincipal user,
+    ISender sender,
+    CancellationToken ct) =>
+{
+    // Extract the logged-in user's ID from Claims
+    var userIdClaim = user.FindFirstValue(ClaimTypes.NameIdentifier);
+    if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var currentUserId))
+    {
+        return Results.Unauthorized();
+    }
+
+    var command = new UpdateTicketStatusCommand(id, currentUserId, request.NewStatus);
+    await sender.Send(command, ct);
+
+    return Results.NoContent();
+})
+.WithName("UpdateTicketStatus")
+.Produces(StatusCodes.Status204NoContent)
+.ProducesProblem(StatusCodes.Status400BadRequest)
+.ProducesProblem(StatusCodes.Status401Unauthorized)
+.ProducesProblem(StatusCodes.Status404NotFound);
 
         // Assign Peer creator only can assing peer 
         group.MapPatch("/{id:guid}/assign", async (

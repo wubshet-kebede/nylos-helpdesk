@@ -5,5 +5,6 @@ namespace Nylos.Helpdesk.Modules.Tickets.Application.Commands.UpdateTicket;
 
 public record UpdateTicketStatusCommand(
     Guid TicketId,
+    Guid currentUserId,
     TicketStatus NewStatus
 ) : IRequest;
