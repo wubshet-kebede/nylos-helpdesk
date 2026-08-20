@@ -1,3 +1,4 @@
+using System.Net;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -34,8 +35,12 @@ internal sealed class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenC
             return false;
         }
 
+        // Decode URL-encoded cookie characters (e.g., %2B -> +, %3D -> =)
+        var decodedToken = WebUtility.UrlDecode(rawToken);
+
+        // Try lookup using both decoded and raw string variants
         var storedToken = await _dbContext.RefreshTokens
-            .FirstOrDefaultAsync(t => t.Token == rawToken, cancellationToken);
+            .FirstOrDefaultAsync(t => t.Token == decodedToken || t.Token == rawToken, cancellationToken);
 
         if (storedToken is null || !storedToken.IsActive)
         {

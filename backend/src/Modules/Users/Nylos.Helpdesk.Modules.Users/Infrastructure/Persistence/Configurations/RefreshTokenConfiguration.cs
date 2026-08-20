@@ -19,6 +19,19 @@ internal sealed class RefreshTokenConfiguration : IEntityTypeConfiguration<Refre
         builder.HasIndex(r => r.Token)
              .IsUnique();
 
+
+        builder.Property(r => r.ExpiresAt)
+            .HasConversion(
+                v => v.ToUniversalTime(),
+                v => DateTime.SpecifyKind(v, DateTimeKind.Utc))
+            .IsRequired();
+
+        builder.Property(r => r.CreatedAt)
+            .HasConversion(
+                v => v.ToUniversalTime(),
+                v => DateTime.SpecifyKind(v, DateTimeKind.Utc))
+            .IsRequired();
+
         builder.HasOne<User>()
             .WithMany()
             .HasForeignKey(r => r.UserId)
