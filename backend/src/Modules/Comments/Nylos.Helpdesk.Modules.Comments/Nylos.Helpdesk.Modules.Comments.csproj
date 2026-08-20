@@ -4,7 +4,9 @@
     <ProjectReference Include="..\Nylos.Helpdesk.Modules.Comments.Contracts\Nylos.Helpdesk.Modules.Comments.Contracts.csproj" />
     <ProjectReference Include="..\..\..\Shared\Nylos.Helpdesk.Shared.Abstractions\Nylos.Helpdesk.Shared.Abstractions.csproj" />
     <ProjectReference Include="..\..\..\Shared\Nylos.Helpdesk.Shared.Infrastructure\Nylos.Helpdesk.Shared.Infrastructure.csproj" />
-  </ItemGroup>
+  <ProjectReference Include="..\..\Tickets\Nylos.Helpdesk.Modules.Tickets.Contracts\Nylos.Helpdesk.Modules.Tickets.Contracts.csproj" />
+ 
+</ItemGroup>
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>

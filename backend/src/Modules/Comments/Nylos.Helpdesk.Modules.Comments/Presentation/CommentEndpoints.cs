@@ -4,48 +4,58 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Nylos.Helpdesk.Modules.Comments.Application.Commands.CreateComment;
-using Nylos.Helpdesk.Modules.Comments.Presentation.Contracts;
+using Nylos.Helpdesk.Modules.Comments.Application.Queries;
 
 namespace Nylos.Helpdesk.Modules.Comments.Presentation;
 
-public static class CommentEndpoints
+public record CreateCommentRequest(string Content, bool IsInternal = false);
+
+public static class CommentsEndpoints
 {
-    public static IEndpointRouteBuilder MapCommentEndpoints(this IEndpointRouteBuilder endpoints)
+    public static void MapCommentsEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = endpoints.MapGroup("/api/v1/comments")
+        var group = app.MapGroup("api/v1/tickets/{ticketId:guid}/comments")
             .WithTags("Comments")
             .RequireAuthorization();
 
-        group.MapPost("/", async (
-            CreateCommentRequest request,
-            ClaimsPrincipal user,
+        //Fetch all comments for a specific ticket
+        group.MapGet("", async (
+            Guid ticketId,
             ISender sender,
             CancellationToken ct) =>
         {
-            var userIdClaim = user.FindFirstValue(ClaimTypes.NameIdentifier)
-                           ?? user.FindFirstValue("sub");
-
-            if (!Guid.TryParse(userIdClaim, out var authorId))
-            {
-                return Results.Unauthorized();
-            }
-
-            var command = new CreateCommentCommand(
-                request.TicketId,
-                authorId,
-                request.Content,
-                request.IsInternal
-            );
-
-            var commentId = await sender.Send(command, ct);
-
-            return Results.Created($"/api/v1/comments/{commentId}", new { id = commentId });
+            var query = new GetCommentsByTicketIdQuery(ticketId);
+            var result = await sender.Send(query, ct);
+            return Results.Ok(result);
         })
-        .WithName("CreateComment")
-        .Produces<object>(StatusCodes.Status201Created)
-        .ProducesProblem(StatusCodes.Status400BadRequest)
-        .ProducesProblem(StatusCodes.Status401Unauthorized);
+        .WithName("GetTicketComments")
+        .Produces(StatusCodes.Status200OK);
 
-        return endpoints;
+        // Add a new comment to a ticket
+        group.MapPost("", async (
+    Guid ticketId,
+    CreateCommentRequest request,
+    ClaimsPrincipal user,
+    ISender sender,
+    CancellationToken ct) =>
+{
+    var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
+        ?? user.FindFirst("sub")?.Value;
+
+    if (!Guid.TryParse(userIdClaim, out var authorId))
+    {
+        return Results.Unauthorized();
+    }
+
+    var command = new CreateCommentCommand(
+        ticketId,
+        authorId,
+        request.Content,
+        request.IsInternal
+    );
+    var commentId = await sender.Send(command, ct);
+
+    return Results.Created($"/api/v1/tickets/{ticketId}/comments/{commentId}", new { id = commentId });
+});
     }
 }

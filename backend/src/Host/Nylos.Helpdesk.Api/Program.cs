@@ -9,6 +9,7 @@ using Microsoft.IdentityModel.Tokens;
 using Nylos.Helpdesk.Modules.Tickets;
 using Nylos.Helpdesk.Modules.Tickets.Presentation;
 using Nylos.Helpdesk.Modules.Users;
+using FluentValidation;
 using Nylos.Helpdesk.Modules.Comments;
 using Nylos.Helpdesk.Modules.Users.Infrastructure.Persistence;
 using Nylos.Helpdesk.Modules.Users.Presentation;
@@ -79,6 +80,8 @@ builder.Services.AddTicketsModule(builder.Configuration);
 builder.Services.AddUsersModule(builder.Configuration);
 builder.Services.AddCommentsModule(builder.Configuration);
 builder.Services.AddSharedInfrastructure();
+// Register all AbstractValidator classes across all loaded modules
+builder.Services.AddValidatorsFromAssemblies(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
     options.SerializerOptions.Converters.Add(

@@ -30,5 +30,7 @@ internal sealed class CommentConfiguration : IEntityTypeConfiguration<Comment>
 
         builder.HasIndex(c => c.TicketId);
         builder.HasIndex(c => c.AuthorId);
+        // optimization for fast ordered fetching
+        builder.HasIndex(c => new { c.TicketId, c.CreatedAt });
     }
 }
