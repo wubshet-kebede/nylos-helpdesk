@@ -20,12 +20,12 @@ internal sealed class GetTicketsQueryHandler
     {
         var query = _dbContext.Tickets.AsNoTracking();
 
-        // filtering
+        // status filtering
         if (request.Status.HasValue)
         {
             query = query.Where(t => t.Status == request.Status.Value);
         }
-        // status filter 
+        // priority filter 
         if (request.Priority.HasValue)
         {
             query = query.Where(t => t.Priority == request.Priority.Value);
@@ -34,6 +34,11 @@ internal sealed class GetTicketsQueryHandler
         if (request.AssigneeId.HasValue)
         {
             query = query.Where(t => t.AssigneeId == request.AssigneeId.Value);
+        }
+        // creator filter 
+        if (request.CreatedById.HasValue)
+        {
+            query = query.Where(t => t.CreatedById == request.CreatedById.Value);
         }
         if (!string.IsNullOrWhiteSpace(request.Search))
         {

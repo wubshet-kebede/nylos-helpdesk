@@ -7,6 +7,7 @@ public record GetTicketsQuery(
     TicketStatus? Status = null,
     TicketPriority? Priority = null,
     Guid? AssigneeId = null,
+    Guid? CreatedById = null,
     string? Search = null,
     int Page = 1,
     int PageSize = 10

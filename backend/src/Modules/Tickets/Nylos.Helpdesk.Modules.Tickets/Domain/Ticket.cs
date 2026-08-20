@@ -78,6 +78,18 @@ public class Ticket
         MoveToStatus(TicketStatus.Resolved);
     }
     /// <summary>
+    /// Closes a resolved ticket. Only the creator of the ticket can execute this action.
+    /// </summary>
+    public void Close(Guid currentUserId)
+    {
+        // Only the creator can close
+        if (CreatedById != currentUserId)
+        {
+            throw new InvalidOperationException("Only the ticket creator can close this ticket.");
+        }
+        MoveToStatus(TicketStatus.Closed);
+    }
+    /// <summary>
     /// Invalid status transitions are rejected.
     /// </summary>
     public bool CanTransitionTo(TicketStatus newStatus)

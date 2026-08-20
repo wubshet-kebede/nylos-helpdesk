@@ -23,12 +23,13 @@ internal sealed class UpdateTicketStatusCommandHandler : IRequestHandler<UpdateT
         {
             throw new NotFoundException($"Ticket with ID {request.TicketId} was not found.");
         }
-        // Delegate to Resolve if moving to Resolved, otherwise use standard MoveToStatus
-        Console.WriteLine($"Requested status: {request.NewStatus}");
-        Console.WriteLine($"Requested status value: {(int)request.NewStatus}");
         if (request.NewStatus == TicketStatus.Resolved)
         {
             ticket.Resolve(request.currentUserId);
+        }
+        else if (request.NewStatus == TicketStatus.Closed)
+        {
+            ticket.Close(request.currentUserId);
         }
         else
         {
