@@ -6,9 +6,10 @@ import type {
   AssignTicketRequest,
   PagedResponse,
   TicketFilters,
+  UpdateTicketRequest,
 } from "./types";
+
 export const ticketsService = {
-  // Fetch all tickets with optional filtering
   getTickets: async (
     filters?: TicketFilters,
   ): Promise<PagedResponse<TicketDto>> => {
@@ -21,13 +22,11 @@ export const ticketsService = {
     return response.data;
   },
 
-  // Get a single ticket by ID
   getTicketById: async (id: string): Promise<TicketDto> => {
     const response = await axiosClient.get<TicketDto>(`/tickets/${id}`);
     return response.data;
   },
 
-  // Create a new ticket
   createTicket: async (
     data: CreateTicketRequest,
   ): Promise<{ id: string; message: string }> => {
@@ -38,7 +37,21 @@ export const ticketsService = {
     return response.data;
   },
 
-  // Update status (e.g., Open -> InProgress -> Resolved)
+  // Update ticket title, description, and priority
+  updateTicket: async ({
+    id,
+    data,
+  }: {
+    id: string;
+    data: UpdateTicketRequest;
+  }): Promise<{ message: string }> => {
+    const response = await axiosClient.put<{ message: string }>(
+      `/tickets/${id}`,
+      data,
+    );
+    return response.data;
+  },
+
   updateStatus: async (
     id: string,
     data: UpdateTicketStatusRequest,
@@ -50,7 +63,6 @@ export const ticketsService = {
     return response.data;
   },
 
-  // Assign ticket to an agent
   assignTicket: async (
     id: string,
     data: AssignTicketRequest,
@@ -62,7 +74,6 @@ export const ticketsService = {
     return response.data;
   },
 
-  // Delete/close ticket
   deleteTicket: async (id: string): Promise<{ message: string }> => {
     const response = await axiosClient.delete<{ message: string }>(
       `/tickets/${id}`,

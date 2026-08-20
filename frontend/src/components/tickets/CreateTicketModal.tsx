@@ -1,5 +1,5 @@
 import Modal from "../common/Modal";
-import CreateTicketForm from "./CreateTicketForm";
+import TicketForm from "./TicketForm";
 
 interface CreateTicketModalProps {
   isOpen: boolean;
@@ -18,7 +18,7 @@ export default function CreateTicketModal({
       description="Create an issue and assign it to the appropriate team member."
       size="xl"
     >
-      <CreateTicketForm onSuccess={onClose} />
+      <TicketForm onSuccess={onClose} />
     </Modal>
   );
 }

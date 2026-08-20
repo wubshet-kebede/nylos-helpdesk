@@ -5,7 +5,7 @@ import type {
   CreateTicketRequest,
   TicketStatus,
 } from "../api/tickets/types";
-
+import { type UpdateTicketRequest } from "../api/tickets/types";
 // Query Key Factory
 export const ticketKeys = {
   all: ["tickets"] as const,
@@ -46,3 +46,15 @@ export function useUpdateTicketStatus() {
     },
   });
 }
+export const useUpdateTicket = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, ...data }: { id: string } & UpdateTicketRequest) =>
+      ticketsService.updateTicket({ id, data }),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["tickets"] });
+      queryClient.invalidateQueries({ queryKey: ["ticket", variables.id] });
+    },
+  });
+};

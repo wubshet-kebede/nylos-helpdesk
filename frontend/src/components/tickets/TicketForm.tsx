@@ -1,12 +1,13 @@
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { ArrowRight, FileText, Flag, Sparkles } from "lucide-react";
 
 import Input from "../ui/Input";
-import { useCreateTicket } from "../../hooks/useTicketsQuery";
+import { useCreateTicket, useUpdateTicket } from "../../hooks/useTicketsQuery";
 
-const createTicketSchema = z.object({
+const ticketSchema = z.object({
   title: z
     .string()
     .min(1, "Ticket title is required")
@@ -20,10 +21,16 @@ const createTicketSchema = z.object({
   priority: z.enum(["Low", "Medium", "High", "Urgent"]),
 });
 
-type CreateTicketFormValues = z.infer<typeof createTicketSchema>;
+type TicketFormValues = z.infer<typeof ticketSchema>;
 
-interface CreateTicketFormProps {
+interface TicketFormProps {
   onSuccess: () => void;
+  initialData?: {
+    id: string;
+    title: string;
+    description?: string | null;
+    priority: "Low" | "Medium" | "High" | "Urgent";
+  };
 }
 
 const PRIORITIES = [
@@ -53,33 +60,55 @@ const PRIORITIES = [
   },
 ] as const;
 
-export default function CreateTicketForm({ onSuccess }: CreateTicketFormProps) {
-  // Inject TanStack Query mutation hook
+export default function TicketForm({
+  onSuccess,
+  initialData,
+}: TicketFormProps) {
+  const isEditing = Boolean(initialData);
+
   const { mutateAsync: createTicket } = useCreateTicket();
+  const { mutateAsync: updateTicket } = useUpdateTicket();
 
   const {
     register,
     handleSubmit,
     watch,
     setValue,
+    reset,
     formState: { errors, isSubmitting },
-  } = useForm<CreateTicketFormValues>({
-    resolver: zodResolver(createTicketSchema),
+  } = useForm<TicketFormValues>({
+    resolver: zodResolver(ticketSchema),
     defaultValues: {
-      priority: "Medium",
+      title: initialData?.title || "",
+      description: initialData?.description || "",
+      priority: initialData?.priority || "Medium",
     },
   });
+
+  // Force reset form values when opening modal with new initialData
+  useEffect(() => {
+    if (initialData) {
+      reset({
+        title: initialData.title || "",
+        description: initialData.description || "",
+        priority: initialData.priority || "Medium",
+      });
+    }
+  }, [initialData, reset]);
 
   const selectedPriority = watch("priority");
   const description = watch("description") || "";
 
-  const onSubmit = async (data: CreateTicketFormValues) => {
+  const onSubmit = async (data: TicketFormValues) => {
     try {
-      // Executes API request and invalidates ticket cache automatically
-      await createTicket(data);
+      if (isEditing && initialData) {
+        await updateTicket({ id: initialData.id, ...data });
+      } else {
+        await createTicket(data);
+      }
       onSuccess();
     } catch {
-      // Axios interceptor handles toast notifications automatically
+      // Handled by Axios Interceptor
     }
   };
 
@@ -198,7 +227,9 @@ export default function CreateTicketForm({ onSuccess }: CreateTicketFormProps) {
           {isSubmitting ? (
             <>
               <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/20 border-t-white" />
-              <span>Indexing backlog...</span>
+              <span>
+                {isEditing ? "Updating ticket..." : "Indexing backlog..."}
+              </span>
             </>
           ) : (
             <>
@@ -206,7 +237,7 @@ export default function CreateTicketForm({ onSuccess }: CreateTicketFormProps) {
                 size={13}
                 className="text-slate-400 group-hover:text-white transition-colors"
               />
-              <span>Publish Ticket</span>
+              <span>{isEditing ? "Save Changes" : "Publish Ticket"}</span>
               <ArrowRight
                 size={13}
                 className="text-slate-500 transition-transform group-hover:translate-x-0.5 group-hover:text-white"

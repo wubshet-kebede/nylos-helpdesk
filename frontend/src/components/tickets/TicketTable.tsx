@@ -4,6 +4,8 @@ import type {
   TicketPriority,
   TicketStatus,
 } from "../../api/tickets/types";
+import { useState } from "react";
+import EditTicketModal from "./EditTicketModal";
 
 interface TicketTableProps {
   tickets: TicketDto[];
@@ -59,6 +61,9 @@ const getInitials = (name?: string | null) => {
 };
 
 export default function TicketTable({ tickets, isLoading }: TicketTableProps) {
+  // Track specific ticket selected for editing
+  const [selectedTicket, setSelectedTicket] = useState<TicketDto | null>(null);
+
   // Loading skeleton state
   if (isLoading) {
     return (
@@ -188,8 +193,12 @@ export default function TicketTable({ tickets, isLoading }: TicketTableProps) {
                 {/* Actions */}
                 <button
                   type="button"
-                  aria-label={`Open ${ticket.id}`}
-                  className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-300 opacity-0 transition-all group-hover:bg-white group-hover:text-slate-500 group-hover:opacity-100 cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedTicket(ticket);
+                  }}
+                  aria-label={`Edit ${ticket.id}`}
+                  className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors cursor-pointer"
                 >
                   <MoreHorizontal size={16} />
                 </button>
@@ -254,6 +263,15 @@ export default function TicketTable({ tickets, isLoading }: TicketTableProps) {
           Synced with backend
         </p>
       </div>
+
+      {/* Edit Ticket Modal conditionally rendered with active ticket */}
+      {selectedTicket && (
+        <EditTicketModal
+          isOpen={Boolean(selectedTicket)}
+          onClose={() => setSelectedTicket(null)}
+          ticket={selectedTicket}
+        />
+      )}
     </section>
   );
 }

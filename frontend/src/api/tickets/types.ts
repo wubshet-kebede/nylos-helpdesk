@@ -44,3 +44,8 @@ export interface TicketFilters {
   page?: number;
   pageSize?: number;
 }
+export interface UpdateTicketRequest {
+  title: string;
+  description: string;
+  priority: "Low" | "Medium" | "High" | "Urgent";
+}
