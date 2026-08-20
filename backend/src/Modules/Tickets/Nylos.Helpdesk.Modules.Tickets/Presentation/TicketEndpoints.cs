@@ -57,11 +57,20 @@ public static class TicketEndpoints
         group.MapPut("/{id:guid}", async (
             Guid id,
             UpdateTicketRequest request,
+            ClaimsPrincipal user,
             ISender sender,
             CancellationToken ct) =>
         {
+            var userIdClaim = user.FindFirstValue(ClaimTypes.NameIdentifier)
+                   ?? user.FindFirstValue("sub");
+
+            if (!Guid.TryParse(userIdClaim, out var currentUserId))
+            {
+                return Results.Unauthorized();
+            }
             var command = new UpdateTicketCommand(
                 id,
+                currentUserId,
                 request.Title,
                 request.Description,
                 request.Priority
@@ -75,7 +84,6 @@ public static class TicketEndpoints
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .ProducesProblem(StatusCodes.Status404NotFound)
         .ProducesProblem(StatusCodes.Status401Unauthorized);
-
         //get ticket using id 
         group.MapGet("/{id:guid}", async (Guid id, ISender sender, CancellationToken ct) =>
         {
@@ -136,10 +144,18 @@ public static class TicketEndpoints
         // delete ticket 
         group.MapDelete("/{id:guid}", async (
             Guid id,
+            ClaimsPrincipal user,
             ISender sender,
             CancellationToken ct) =>
         {
-            var command = new DeleteTicketCommand(id);
+            var userIdClaim = user.FindFirstValue(ClaimTypes.NameIdentifier)
+                   ?? user.FindFirstValue("sub");
+
+            if (!Guid.TryParse(userIdClaim, out var currentUserId))
+            {
+                return Results.Unauthorized();
+            }
+            var command = new DeleteTicketCommand(id, currentUserId);
             await sender.Send(command, ct);
             return Results.NoContent();
         })

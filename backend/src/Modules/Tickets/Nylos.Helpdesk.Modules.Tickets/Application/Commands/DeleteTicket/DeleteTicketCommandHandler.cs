@@ -23,7 +23,10 @@ internal sealed class DeleteTicketCommandHandler : IRequestHandler<DeleteTicketC
         {
             throw new NotFoundException($"Ticket with ID {request.TicketId} was not found.");
         }
-
+        if (ticket.CreatedById != request.currentUserId)
+        {
+            throw new UnauthorizedAccessException("You are not authorized to delete this ticket.");
+        }
         _dbContext.Tickets.Remove(ticket);
         await _dbContext.SaveChangesAsync(cancellationToken);
     }

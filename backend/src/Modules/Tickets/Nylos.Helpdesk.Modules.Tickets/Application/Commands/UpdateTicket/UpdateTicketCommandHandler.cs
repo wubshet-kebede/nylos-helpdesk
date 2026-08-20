@@ -23,7 +23,11 @@ public sealed class UpdateTicketCommandHandler : IRequestHandler<UpdateTicketCom
         {
             throw new NotFoundException($"Ticket with ID '{request.TicketId}' was not found.");
         }
-
+        if (ticket.CreatedById != request.currentUserId)
+        {
+            // Throw an exception that gets mapped to HTTP 403 Forbidden
+            throw new UnauthorizedAccessException("You are not authorized to edit this ticket.");
+        }
         ticket.UpdateDetails(request.Title, request.Description, request.Priority);
 
         await _dbContext.SaveChangesAsync(cancellationToken);
