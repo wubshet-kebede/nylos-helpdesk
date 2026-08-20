@@ -6,6 +6,7 @@ public record TicketSummaryDto(
     Guid Id,
     string TicketNumber,
     string Title,
+    string Description,
     TicketStatus Status,
     TicketPriority Priority,
     Guid CreatedById,

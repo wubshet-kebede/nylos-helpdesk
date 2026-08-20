@@ -52,7 +52,31 @@ public static class TicketEndpoints
         .Produces<object>(StatusCodes.Status201Created)
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .ProducesProblem(StatusCodes.Status401Unauthorized);
-        //get  ticket using id 
+
+        // Update Ticket Details (Title, Description, Priority)
+        group.MapPut("/{id:guid}", async (
+            Guid id,
+            UpdateTicketRequest request,
+            ISender sender,
+            CancellationToken ct) =>
+        {
+            var command = new UpdateTicketCommand(
+                id,
+                request.Title,
+                request.Description,
+                request.Priority
+            );
+
+            await sender.Send(command, ct);
+            return Results.Ok(new { message = "Ticket updated successfully" });
+        })
+        .WithName("UpdateTicket")
+        .Produces<object>(StatusCodes.Status200OK)
+        .ProducesProblem(StatusCodes.Status400BadRequest)
+        .ProducesProblem(StatusCodes.Status404NotFound)
+        .ProducesProblem(StatusCodes.Status401Unauthorized);
+
+        //get ticket using id 
         group.MapGet("/{id:guid}", async (Guid id, ISender sender, CancellationToken ct) =>
         {
             var query = new GetTicketByIdQuery(id);
@@ -63,7 +87,8 @@ public static class TicketEndpoints
         .Produces<TicketDetailsDto>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status404NotFound)
         .ProducesProblem(StatusCodes.Status401Unauthorized);
-        // get ticket fro pagination and filter 
+
+        // get ticket for pagination and filter 
         group.MapGet("/", async (
             [AsParameters] GetTicketsQuery query,
             ISender sender,
@@ -76,7 +101,6 @@ public static class TicketEndpoints
         .Produces<PagedResult<TicketSummaryDto>>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status401Unauthorized);
 
-        // update ticket status 
         // Update Status
         group.MapPatch("/{id:guid}/status", async (
             Guid id,
@@ -108,6 +132,7 @@ public static class TicketEndpoints
         .Produces(StatusCodes.Status204NoContent)
         .ProducesProblem(StatusCodes.Status404NotFound)
         .ProducesProblem(StatusCodes.Status401Unauthorized);
+
         // delete ticket 
         group.MapDelete("/{id:guid}", async (
             Guid id,
@@ -122,6 +147,7 @@ public static class TicketEndpoints
         .Produces(StatusCodes.Status204NoContent)
         .ProducesProblem(StatusCodes.Status404NotFound)
         .ProducesProblem(StatusCodes.Status401Unauthorized);
+
         return endpoints;
     }
 }

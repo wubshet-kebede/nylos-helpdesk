@@ -44,8 +44,14 @@ public class Ticket
     }
     public void UpdateDetails(string title, string description, TicketPriority priority)
     {
-        Title = title.Trim();
-        Description = description.Trim();
+        if (string.IsNullOrWhiteSpace(title))
+            throw new ArgumentException("Title cannot be empty.", nameof(title));
+
+        if (string.IsNullOrWhiteSpace(description))
+            throw new ArgumentException("Description cannot be empty.", nameof(description));
+
+        Title = title;
+        Description = description;
         Priority = priority;
         UpdatedAt = DateTime.UtcNow;
     }

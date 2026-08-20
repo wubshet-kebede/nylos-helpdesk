@@ -49,6 +49,7 @@ internal sealed class GetTicketsQueryHandler
                 t.Id,
                 t.TicketNumber,
                 t.Title,
+                t.Description,
                 t.Status,
                 t.Priority,
                 t.CreatedById,
