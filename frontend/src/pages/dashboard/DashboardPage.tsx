@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Activity, CheckCircle2, Clock3, Ticket } from "lucide-react";
+import { Activity, CheckCircle2, Clock3, Ticket, Archive } from "lucide-react";
 import StatCard from "../../components/dashboard/StatCard";
 import TicketActivity from "../../components/dashboard/TicketActivity";
 import MyWork from "../../components/dashboard/MyWork";
@@ -15,6 +15,7 @@ export default function DashboardPage() {
     open,
     inProgress,
     resolved,
+    closed,
     isLoading: isStatsLoading,
   } = useTicketStats();
   const { user, isLoading: isAuthLoading } = useAuth();
@@ -51,6 +52,14 @@ export default function DashboardPage() {
       change: 0,
       description: "vs. last month",
       icon: CheckCircle2,
+      trend: "up" as const,
+    },
+    {
+      label: "Closed",
+      value: isStatsLoading ? "..." : closed,
+      change: 0,
+      description: "vs. last month",
+      icon: Archive,
       trend: "up" as const,
     },
   ];

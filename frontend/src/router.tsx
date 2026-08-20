@@ -7,6 +7,7 @@ import DashboardPage from "./pages/dashboard/DashboardPage";
 import WorkspaceLayout from "./layouts/WorkspaceLayout";
 import TicketListPage from "./pages/ticket/TicketListPage";
 import ProtectedRoute from "./components/common/ProtectedRoute";
+import MyWorkPage from "./pages/mywork/MyWorkPage";
 export const router = createBrowserRouter([
   {
     element: <DefaultLayout />,
@@ -39,6 +40,10 @@ export const router = createBrowserRouter([
           {
             path: "tickets",
             element: <TicketListPage />,
+          },
+          {
+            path: "my-work",
+            element: <MyWorkPage />,
           },
         ],
       },
