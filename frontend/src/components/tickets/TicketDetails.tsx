@@ -6,7 +6,7 @@ import {
   UserRound,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-
+import { useAuth } from "../../context/AuthContext";
 import type { TicketDto } from "../../api/tickets/types";
 import { PriorityBadge, StatusBadge, STATUS_CONFIG } from "./TicketBadges";
 
@@ -52,7 +52,9 @@ export function TicketDetails({
   isUpdating,
 }: TicketDetailsProps) {
   const navigate = useNavigate();
-  const canResolve = ticket.status === "Open" || ticket.status === "InProgress";
+  const { user } = useAuth();
+  const isAssignee = ticket.assigneeId === user?.id;
+  const canResolve = isAssignee && ticket.status === "InProgress";
 
   return (
     <div className="flex min-h-full flex-col">

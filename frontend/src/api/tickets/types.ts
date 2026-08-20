@@ -30,7 +30,7 @@ export interface CreateTicketRequest {
 }
 
 export interface UpdateTicketStatusRequest {
-  status: TicketStatus;
+  newStatus: TicketStatus;
 }
 
 export interface AssignTicketRequest {

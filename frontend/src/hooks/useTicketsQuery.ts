@@ -40,8 +40,8 @@ export function useUpdateTicketStatus() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, status }: { id: string; status: TicketStatus }) =>
-      ticketsService.updateStatus(id, { status }),
+    mutationFn: ({ id, newStatus }: { id: string; newStatus: TicketStatus }) =>
+      ticketsService.updateStatus(id, { newStatus }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ticketKeys.all });
     },

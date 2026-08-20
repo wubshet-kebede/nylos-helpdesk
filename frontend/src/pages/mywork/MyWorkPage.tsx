@@ -60,7 +60,7 @@ export default function MyWorkPage() {
 
   const handleResolve = async () => {
     if (!selectedTicket) return;
-    await updateStatus({ id: selectedTicket.id, status: "Resolved" });
+    await updateStatus({ id: selectedTicket.id, newStatus: "Resolved" });
   };
 
   return (
