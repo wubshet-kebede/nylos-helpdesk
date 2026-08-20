@@ -8,6 +8,7 @@ import WorkspaceLayout from "./layouts/WorkspaceLayout";
 import TicketListPage from "./pages/ticket/TicketListPage";
 import ProtectedRoute from "./components/common/ProtectedRoute";
 import MyWorkPage from "./pages/mywork/MyWorkPage";
+import CreatedByMePage from "./pages/createdbyme/CreatedByMePage";
 export const router = createBrowserRouter([
   {
     element: <DefaultLayout />,
@@ -44,6 +45,10 @@ export const router = createBrowserRouter([
           {
             path: "my-work",
             element: <MyWorkPage />,
+          },
+          {
+            path: "created-by-me",
+            element: <CreatedByMePage />,
           },
         ],
       },

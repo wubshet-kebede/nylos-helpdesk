@@ -1,13 +1,15 @@
 import {
   ArrowUpRight,
   CheckCircle2,
+  XCircle,
   Loader2,
   MoreHorizontal,
   UserRound,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
+
 import type { TicketDto } from "../../api/tickets/types";
+import { useAuth } from "../../context/AuthContext";
 import { PriorityBadge, StatusBadge, STATUS_CONFIG } from "./TicketBadges";
 
 function formatDate(date?: string | null) {
@@ -42,23 +44,28 @@ function DetailItem({ label, value }: { label: string; value: string }) {
 
 interface TicketDetailsProps {
   ticket: TicketDto;
-  onResolve: () => void;
+  onStatusChange: (status: "Resolved" | "Closed") => void;
   isUpdating: boolean;
 }
 
 export function TicketDetails({
   ticket,
-  onResolve,
+  onStatusChange,
   isUpdating,
 }: TicketDetailsProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
+
+  // Action guards
   const isAssignee = ticket.assigneeId === user?.id;
+  const isCreator = ticket.createdById === user?.id;
+
   const canResolve = isAssignee && ticket.status === "InProgress";
+  const canClose = isCreator && ticket.status === "Resolved";
 
   return (
     <div className="flex min-h-full flex-col">
-      {/* Ticket header */}
+      {/* Header */}
       <div className="border-b border-slate-100 px-6 py-5 lg:px-8">
         <div className="flex items-start justify-between gap-6">
           <div className="min-w-0">
@@ -84,12 +91,13 @@ export function TicketDetails({
           </button>
         </div>
 
-        {/* Actions */}
+        {/* Action Controls */}
         <div className="mt-5 flex flex-wrap items-center gap-2">
+          {/* Resolve Button for Assignees */}
           {canResolve && (
             <button
               type="button"
-              onClick={onResolve}
+              onClick={() => onStatusChange("Resolved")}
               disabled={isUpdating}
               className="inline-flex items-center gap-2 rounded-lg bg-slate-950 px-3.5 py-2 text-xs font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
             >
@@ -99,6 +107,23 @@ export function TicketDetails({
                 <CheckCircle2 size={14} />
               )}
               {isUpdating ? "Updating..." : "Mark as resolved"}
+            </button>
+          )}
+
+          {/* Close Button for Creators */}
+          {canClose && (
+            <button
+              type="button"
+              onClick={() => onStatusChange("Closed")}
+              disabled={isUpdating}
+              className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3.5 py-2 text-xs font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
+            >
+              {isUpdating ? (
+                <Loader2 size={14} className="animate-spin" />
+              ) : (
+                <XCircle size={14} />
+              )}
+              {isUpdating ? "Updating..." : "Mark as closed"}
             </button>
           )}
 
@@ -122,7 +147,6 @@ export function TicketDetails({
             {ticket.description || "No description provided."}
           </div>
 
-          {/* Metadata */}
           <div className="mt-10 border-t border-slate-100 pt-6">
             <SectionLabel label="Ticket details" />
 
@@ -143,7 +167,6 @@ export function TicketDetails({
             </div>
           </div>
 
-          {/* Assignment */}
           <div className="mt-10 border-t border-slate-100 pt-6">
             <SectionLabel label="Assignment" />
 
@@ -154,13 +177,13 @@ export function TicketDetails({
 
               <div>
                 <p className="text-xs font-semibold text-slate-800">
-                  {ticket.assigneeName
-                    ? ticket.assigneeName
-                    : "Assigned to you"}
+                  {ticket.assigneeName ? ticket.assigneeName : "Unassigned"}
                 </p>
 
                 <p className="mt-0.5 text-[11px] text-slate-400">
-                  You are responsible for this ticket.
+                  {isAssignee
+                    ? "You are responsible for this ticket."
+                    : "Assigned team member responsible for resolution."}
                 </p>
               </div>
             </div>

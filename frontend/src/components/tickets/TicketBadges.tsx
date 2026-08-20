@@ -45,11 +45,11 @@ export const PRIORITY_CONFIG: Record<
 > = {
   Low: {
     label: "Low",
-    className: "text-slate-500 bg-slate-100",
+    className: "text-slate-700 bg-slate-100",
   },
   Medium: {
     label: "Medium",
-    className: "text-blue-700 bg-blue-50",
+    className: "text-blue-700 bg-blue-50 ",
   },
   High: {
     label: "High",

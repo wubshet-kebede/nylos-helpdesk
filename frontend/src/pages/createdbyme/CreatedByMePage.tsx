@@ -20,15 +20,15 @@ import {
   TicketDetailsSkeleton,
 } from "../../components/common/Skeletons";
 
-export default function MyWorkPage() {
+export default function CreatedByMePage() {
   const { user } = useAuth();
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
-  //here is the killer to get only the assigned tikets
+
   const filters = useMemo(
     () => ({
       page: 1,
       pageSize: 50,
-      assigneeId: user?.id,
+      createdById: user?.id, // Fetch tickets created by logged-in user
     }),
     [user?.id],
   );
@@ -38,6 +38,7 @@ export default function MyWorkPage() {
     useUpdateTicketStatus();
 
   const tickets: TicketDto[] = data?.items ?? [];
+
   const selectedTicket =
     tickets.find((ticket) => ticket.id === selectedTicketId) ??
     tickets[0] ??
@@ -71,7 +72,7 @@ export default function MyWorkPage() {
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-xl font-semibold tracking-tight text-slate-950">
-                  My Work
+                  Created by Me
                 </h1>
 
                 <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-500">
@@ -80,7 +81,7 @@ export default function MyWorkPage() {
               </div>
 
               <p className="mt-1 text-xs text-slate-400">
-                Tickets currently assigned to you.
+                Tickets created by you across all projects.
               </p>
             </div>
 
@@ -109,7 +110,7 @@ export default function MyWorkPage() {
             <div className="flex h-14 items-center justify-between border-b border-slate-100 px-4">
               <div className="flex items-center gap-2">
                 <h2 className="text-xs font-bold text-slate-800">
-                  Assigned tickets
+                  My Created Tickets
                 </h2>
 
                 <span className="text-[10px] font-medium text-slate-400">

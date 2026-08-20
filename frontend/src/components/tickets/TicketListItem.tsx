@@ -29,7 +29,7 @@ export function TicketListItem({
       type="button"
       onClick={onClick}
       className={`w-full border-b border-slate-100 px-4 py-4 text-left transition cursor-pointer ${
-        selected ? "bg-slate-50" : "bg-white hover:bg-slate-50/70"
+        selected ? "bg-slate-100" : "bg-white hover:bg-slate-50/70"
       }`}
     >
       <div className="flex gap-3">

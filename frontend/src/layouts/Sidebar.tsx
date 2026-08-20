@@ -2,6 +2,7 @@ import {
   LayoutDashboard,
   Ticket,
   Inbox,
+  SquarePen,
   Settings,
   ChevronRight,
   Command,
@@ -26,6 +27,11 @@ const NAVIGATION = [
     label: "My Work",
     to: "/app/my-work",
     icon: Inbox,
+  },
+  {
+    label: "Created By Me",
+    to: "/app/created-by-me",
+    icon: SquarePen,
   },
 ] as const;
 

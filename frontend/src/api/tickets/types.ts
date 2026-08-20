@@ -44,6 +44,7 @@ export interface TicketFilters {
   page?: number;
   pageSize?: number;
   assigneeId?: string;
+  createdById?: string;
 }
 export interface UpdateTicketRequest {
   title: string;
