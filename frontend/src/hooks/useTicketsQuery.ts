@@ -58,3 +58,13 @@ export const useUpdateTicket = () => {
     },
   });
 };
+export const useDeleteTicket = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => ticketsService.deleteTicket(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tickets"] });
+    },
+  });
+};

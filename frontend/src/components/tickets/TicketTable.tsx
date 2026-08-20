@@ -1,18 +1,27 @@
-import { ArrowUpRight, CircleDot, Clock3, MoreHorizontal } from "lucide-react";
+import {
+  ArrowUpRight,
+  CircleDot,
+  Clock3,
+  MoreHorizontal,
+  Pencil,
+  Trash2,
+  AlertTriangle,
+} from "lucide-react";
 import type {
   TicketDto,
   TicketPriority,
   TicketStatus,
 } from "../../api/tickets/types";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import EditTicketModal from "./EditTicketModal";
+import Modal from "../common/Modal";
+import { useDeleteTicket } from "../../hooks/useTicketsQuery";
 
 interface TicketTableProps {
   tickets: TicketDto[];
   isLoading: boolean;
 }
 
-// Utility to pick priority badge colors
 const getPriorityStyles = (priority: TicketPriority) => {
   switch (priority) {
     case "Urgent":
@@ -27,7 +36,6 @@ const getPriorityStyles = (priority: TicketPriority) => {
   }
 };
 
-// Utility to pick status badge colors
 const getStatusStyles = (status: TicketStatus) => {
   switch (status) {
     case "Open":
@@ -43,13 +51,11 @@ const getStatusStyles = (status: TicketStatus) => {
   }
 };
 
-// Format status label for clean UI display
 const formatStatusLabel = (status: TicketStatus) => {
   if (status === "InProgress") return "In Progress";
   return status;
 };
 
-// Extract initials for assignee avatar
 const getInitials = (name?: string | null) => {
   if (!name) return "UN";
   return name
@@ -61,10 +67,35 @@ const getInitials = (name?: string | null) => {
 };
 
 export default function TicketTable({ tickets, isLoading }: TicketTableProps) {
-  // Track specific ticket selected for editing
   const [selectedTicket, setSelectedTicket] = useState<TicketDto | null>(null);
+  const [ticketToDelete, setTicketToDelete] = useState<TicketDto | null>(null);
+  const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
 
-  // Loading skeleton state
+  const menuRef = useRef<HTMLDivElement | null>(null);
+  const { mutateAsync: deleteTicket, isPending: isDeleting } =
+    useDeleteTicket();
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setActiveMenuId(null);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleDeleteConfirm = async () => {
+    if (!ticketToDelete) return;
+    try {
+      await deleteTicket(ticketToDelete.id);
+      setTicketToDelete(null);
+    } catch {
+      // Handled by Axios Interceptor
+    }
+  };
+
   if (isLoading) {
     return (
       <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-12 text-center shadow-sm">
@@ -76,7 +107,6 @@ export default function TicketTable({ tickets, isLoading }: TicketTableProps) {
     );
   }
 
-  // Empty state when no tickets match filters
   if (tickets.length === 0) {
     return (
       <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-12 text-center shadow-sm">
@@ -129,14 +159,14 @@ export default function TicketTable({ tickets, isLoading }: TicketTableProps) {
             },
           );
 
+          const isMenuOpen = activeMenuId === ticket.id;
+
           return (
             <div
               key={ticket.id}
               className="group relative transition-colors duration-150 hover:bg-slate-50/60"
             >
-              {/* Desktop View */}
               <div className="hidden min-w-0 grid-cols-[minmax(280px,1fr)_120px_140px_100px_110px_40px] items-center gap-4 px-6 py-4 md:grid">
-                {/* Ticket Details */}
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="text-[10px] font-bold tracking-wide text-slate-400">
@@ -145,17 +175,14 @@ export default function TicketTable({ tickets, isLoading }: TicketTableProps) {
                     <span className="h-1 w-1 rounded-full bg-slate-300" />
                     <span className="text-[10px] text-slate-400">Issue</span>
                   </div>
-
                   <p className="mt-1 truncate text-sm font-semibold text-slate-800 transition-colors group-hover:text-indigo-600">
                     {ticket.title}
                   </p>
-
                   <p className="mt-1 truncate text-xs text-slate-400">
                     {ticket.description}
                   </p>
                 </div>
 
-                {/* Priority */}
                 <div>
                   <span
                     className={`inline-flex rounded-full px-2.5 py-1 text-[9px] font-bold uppercase tracking-wide ${priorityClass}`}
@@ -164,7 +191,6 @@ export default function TicketTable({ tickets, isLoading }: TicketTableProps) {
                   </span>
                 </div>
 
-                {/* Status */}
                 <div>
                   <span
                     className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[9px] font-bold uppercase tracking-wide ${statusClass}`}
@@ -174,7 +200,6 @@ export default function TicketTable({ tickets, isLoading }: TicketTableProps) {
                   </span>
                 </div>
 
-                {/* Assignee */}
                 <div className="flex items-center">
                   <div
                     title={ticket.assigneeName || "Unassigned"}
@@ -184,24 +209,55 @@ export default function TicketTable({ tickets, isLoading }: TicketTableProps) {
                   </div>
                 </div>
 
-                {/* Created / Updated */}
                 <div className="flex items-center gap-1.5 text-xs text-slate-400">
                   <Clock3 size={13} />
                   {formattedDate}
                 </div>
 
-                {/* Actions */}
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSelectedTicket(ticket);
-                  }}
-                  aria-label={`Edit ${ticket.id}`}
-                  className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors cursor-pointer"
-                >
-                  <MoreHorizontal size={16} />
-                </button>
+                {/* Popover Action Menu */}
+                <div className="relative" ref={isMenuOpen ? menuRef : null}>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveMenuId(isMenuOpen ? null : ticket.id);
+                    }}
+                    title="Actions"
+                    className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors cursor-pointer"
+                  >
+                    <MoreHorizontal size={16} />
+                  </button>
+
+                  {isMenuOpen && (
+                    <div className="absolute right-0 top-9 z-20 w-36 rounded-xl border border-slate-200/80 bg-white p-1 shadow-lg ring-1 ring-slate-950/5 animate-in fade-in zoom-in-95 duration-100">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedTicket(ticket);
+                          setActiveMenuId(null);
+                        }}
+                        className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-xs font-semibold text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                      >
+                        <Pencil size={13} className="text-slate-400" />
+                        <span>Edit Ticket</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setTicketToDelete(ticket);
+                          setActiveMenuId(null);
+                        }}
+                        className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-xs font-semibold text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                      >
+                        <Trash2 size={13} className="text-rose-500" />
+                        <span>Delete</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Mobile View */}
@@ -234,7 +290,6 @@ export default function TicketTable({ tickets, isLoading }: TicketTableProps) {
                     >
                       {ticket.priority}
                     </span>
-
                     <span
                       className={`rounded-full px-2 py-1 text-[9px] font-bold uppercase tracking-wide ${statusClass}`}
                     >
@@ -253,24 +308,61 @@ export default function TicketTable({ tickets, isLoading }: TicketTableProps) {
         })}
       </div>
 
-      {/* Bottom Meta Bar */}
       <div className="flex flex-col gap-2 border-t border-slate-100 bg-slate-50/40 px-5 py-3.5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
         <p className="text-[11px] font-medium text-slate-400">
           Showing {tickets.length} retrieved tickets
         </p>
-
         <p className="text-[11px] font-semibold text-slate-500">
           Synced with backend
         </p>
       </div>
 
-      {/* Edit Ticket Modal conditionally rendered with active ticket */}
+      {/* Edit Ticket Modal */}
       {selectedTicket && (
         <EditTicketModal
           isOpen={Boolean(selectedTicket)}
           onClose={() => setSelectedTicket(null)}
           ticket={selectedTicket}
         />
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {ticketToDelete && (
+        <Modal
+          isOpen={Boolean(ticketToDelete)}
+          onClose={() => setTicketToDelete(null)}
+          title="Delete Ticket"
+          description="Are you sure you want to delete this ticket? This action cannot be undone."
+          size="sm"
+        >
+          <div className="space-y-4 pt-2">
+            <div className="flex items-center gap-3 rounded-xl bg-rose-50 p-3 text-rose-800">
+              <AlertTriangle size={18} className="shrink-0 text-rose-600" />
+              <p className="text-xs font-semibold truncate">
+                {ticketToDelete.title}
+              </p>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 border-t border-slate-100 pt-4">
+              <button
+                type="button"
+                onClick={() => setTicketToDelete(null)}
+                className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-600 transition hover:bg-slate-50 cursor-pointer"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={handleDeleteConfirm}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-rose-600 px-4 py-2 text-xs font-bold text-white transition hover:bg-rose-700 disabled:opacity-50 cursor-pointer"
+              >
+                {isDeleting ? "Deleting..." : "Delete Permanently"}
+              </button>
+            </div>
+          </div>
+        </Modal>
       )}
     </section>
   );
