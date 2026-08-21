@@ -36,6 +36,7 @@ export function TicketDetails({
   const { user } = useAuth();
 
   // Action guards
+  console.log("this is the ticekt details: ", ticket);
   const isAssignee = ticket.assigneeId === user?.id;
   const isCreator = ticket.createdById === user?.id;
 

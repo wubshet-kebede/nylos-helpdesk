@@ -20,6 +20,7 @@ import UserAssignModal, { type WorkspaceUser } from "./UserAssignModal";
 import { useDeleteTicket, useAssignTicket } from "../../hooks/useTicketsQuery";
 import { useGetUsers } from "../../hooks/useUsersQuery";
 import { useAuth } from "../../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 interface TicketTableProps {
   tickets: TicketDto[];
   isLoading: boolean;
@@ -74,7 +75,7 @@ export default function TicketTable({ tickets, isLoading }: TicketTableProps) {
   const [ticketToDelete, setTicketToDelete] = useState<TicketDto | null>(null);
   const [ticketToAssign, setTicketToAssign] = useState<TicketDto | null>(null);
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
-
+  const navigate = useNavigate();
   const menuRef = useRef<HTMLDivElement | null>(null);
   const { user: currentUser } = useAuth();
 
@@ -189,7 +190,8 @@ export default function TicketTable({ tickets, isLoading }: TicketTableProps) {
           return (
             <div
               key={ticket.id}
-              className="group relative transition-colors duration-150 hover:bg-slate-50/60"
+              onClick={() => navigate(`/app/tickets/${ticket.id}`)}
+              className="group relative transition-colors duration-150 cursor-pointer  hover:bg-slate-50 "
             >
               {/* desktop View */}
               <div className="hidden min-w-0 grid-cols-[minmax(280px,1fr)_120px_140px_100px_110px_40px] items-center gap-4 px-6 py-4 md:grid">

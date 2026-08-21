@@ -9,6 +9,7 @@ import TicketListPage from "./pages/ticket/TicketListPage";
 import ProtectedRoute from "./components/common/ProtectedRoute";
 import MyWorkPage from "./pages/mywork/MyWorkPage";
 import CreatedByMePage from "./pages/createdbyme/CreatedByMePage";
+import TicketDetailPage from "./pages/ticket/TicketDetailPage";
 export const router = createBrowserRouter([
   {
     element: <DefaultLayout />,
@@ -50,6 +51,7 @@ export const router = createBrowserRouter([
             path: "created-by-me",
             element: <CreatedByMePage />,
           },
+          { path: "tickets/:id", element: <TicketDetailPage /> },
         ],
       },
     ],

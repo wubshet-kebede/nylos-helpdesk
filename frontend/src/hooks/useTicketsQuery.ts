@@ -21,7 +21,13 @@ export function useGetTickets(filters?: TicketFilters) {
     queryFn: () => ticketsService.getTickets(filters),
   });
 }
-
+export function useGetTicketById(id: string) {
+  return useQuery({
+    queryKey: ["ticket", id],
+    queryFn: () => ticketsService.getTicketById(id),
+    enabled: Boolean(id),
+  });
+}
 // Hook to create a ticket
 export function useCreateTicket() {
   const queryClient = useQueryClient();

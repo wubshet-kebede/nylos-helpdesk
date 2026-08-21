@@ -143,7 +143,6 @@ export default function MyWorkPage() {
             </div>
           </aside>
 
-          {/* RIGHT: selected ticket */}
           <main className="min-w-0 bg-white">
             {isLoading ? (
               <TicketDetailsSkeleton />
