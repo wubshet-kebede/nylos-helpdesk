@@ -179,11 +179,10 @@ export default function TicketTable({ tickets, isLoading }: TicketTableProps) {
           const isMenuOpen = activeMenuId === ticket.id;
           const isTopRow = index < 2;
           const isCreator = currentUser?.id === ticket.createdById;
-          const isAdmin = currentUser?.userRole === "Admin";
 
-          const canEdit = isCreator || isAdmin;
-          const canAssign = isAdmin || isCreator;
-          const canDelete = isCreator || isAdmin;
+          const canEdit = isCreator;
+          const canAssign = isCreator;
+          const canDelete = isCreator;
 
           const hasAnyPermission = canEdit || canAssign || canDelete;
 

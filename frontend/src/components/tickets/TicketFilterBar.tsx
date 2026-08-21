@@ -2,7 +2,6 @@ import {
   useState,
   type Dispatch,
   type SetStateAction,
-  type ChangeEvent,
   useRef,
   useEffect,
 } from "react";
@@ -17,6 +16,9 @@ import {
   UserRound,
   X,
   UserCheck,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 import type {
   TicketFilters,
@@ -26,26 +28,57 @@ import type {
 import { useGetUsers } from "../../hooks/useUsersQuery";
 import type { WorkspaceUser } from "./UserAssignModal";
 
-const STATUS_OPTIONS: { label: string; value: TicketStatus | "all" }[] = [
-  { label: "All statuses", value: "all" },
-  { label: "Open", value: "Open" },
-  { label: "In Progress", value: "InProgress" },
-  { label: "Resolved", value: "Resolved" },
-  { label: "Closed", value: "Closed" },
+export type SortField = "createdAt" | "updatedAt" | "priority";
+export type SortOrder = "asc" | "desc";
+
+const STATUS_OPTIONS: {
+  label: string;
+  value: TicketStatus | "all";
+  colorDot: string;
+}[] = [
+  { label: "All statuses", value: "all", colorDot: "bg-slate-400" },
+  { label: "Open", value: "Open", colorDot: "bg-blue-500" },
+  { label: "In Progress", value: "InProgress", colorDot: "bg-amber-500" },
+  { label: "Resolved", value: "Resolved", colorDot: "bg-emerald-500" },
+  { label: "Closed", value: "Closed", colorDot: "bg-slate-500" },
 ];
 
-const PRIORITY_OPTIONS: { label: string; value: TicketPriority | "all" }[] = [
-  { label: "All priorities", value: "all" },
-  { label: "Low", value: "Low" },
-  { label: "Medium", value: "Medium" },
-  { label: "High", value: "High" },
-  { label: "Urgent", value: "Urgent" },
+const PRIORITY_OPTIONS: {
+  label: string;
+  value: TicketPriority | "all";
+  colorClass: string;
+}[] = [
+  { label: "All priorities", value: "all", colorClass: "text-slate-500" },
+  { label: "Low", value: "Low", colorClass: "text-slate-600" },
+  { label: "Medium", value: "Medium", colorClass: "text-blue-600" },
+  { label: "High", value: "High", colorClass: "text-amber-600 font-medium" },
+  {
+    label: "Urgent",
+    value: "Urgent",
+    colorClass: "text-rose-600 font-semibold",
+  },
 ];
 
-// Added viewMode and onViewModeChange to interface
+const SORT_OPTIONS: {
+  label: string;
+  field: SortField;
+  order: SortOrder;
+}[] = [
+  { label: "Newest first", field: "createdAt", order: "desc" },
+  { label: "Oldest first", field: "createdAt", order: "asc" },
+  { label: "Recently updated", field: "updatedAt", order: "desc" },
+  { label: "Least recently updated", field: "updatedAt", order: "asc" },
+  { label: "Highest priority", field: "priority", order: "desc" },
+  { label: "Lowest priority", field: "priority", order: "asc" },
+];
+
 interface TicketFilterBarProps {
-  filters: TicketFilters;
-  onFilterChange: Dispatch<SetStateAction<TicketFilters>>;
+  filters: TicketFilters & { sortBy?: SortField; sortOrder?: SortOrder };
+  onFilterChange: Dispatch<
+    SetStateAction<
+      TicketFilters & { sortBy?: SortField; sortOrder?: SortOrder }
+    >
+  >;
   viewMode: "list" | "board";
   onViewModeChange: (view: "list" | "board") => void;
 }
@@ -57,28 +90,38 @@ export default function TicketFilterBar({
   onViewModeChange,
 }: TicketFilterBarProps) {
   const [searchInput, setSearchInput] = useState(filters.search || "");
-  const [isAssigneeDropdownOpen, setIsAssigneeDropdownOpen] = useState(false);
+  const [activeDropdown, setActiveDropdown] = useState<
+    "status" | "priority" | "assignee" | "sort" | null
+  >(null);
   const [assigneeSearchTerm, setAssigneeSearchTerm] = useState("");
 
   const { data: users = [], isLoading: isLoadingUsers } = useGetUsers();
-  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const filterBarRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const selectedUser = users.find((u) => u.id === filters.assigneeId) || null;
-
+  const currentStatusObj = STATUS_OPTIONS.find(
+    (s) => s.value === (filters.status || "all"),
+  );
+  const currentPriorityObj = PRIORITY_OPTIONS.find(
+    (p) => p.value === (filters.priority || "all"),
+  );
+  const currentSortObj = SORT_OPTIONS.find(
+    (s) => s.field === filters.sortBy && s.order === filters.sortOrder,
+  );
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
+        filterBarRef.current &&
+        !filterBarRef.current.contains(event.target as Node)
       ) {
-        setIsAssigneeDropdownOpen(false);
+        setActiveDropdown(null);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (
@@ -95,31 +138,41 @@ export default function TicketFilterBar({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
+  const handleSelectStatus = (status: TicketStatus | "all") => {
+    onFilterChange((prev) => ({
+      ...prev,
+      page: 1,
+      status: status === "all" ? undefined : status,
+    }));
+    setActiveDropdown(null);
+  };
+
+  const handleSelectPriority = (priority: TicketPriority | "all") => {
+    onFilterChange((prev) => ({
+      ...prev,
+      page: 1,
+      priority: priority === "all" ? undefined : priority,
+    }));
+    setActiveDropdown(null);
+  };
+
+  const handleSelectSort = (field: SortField, order: SortOrder) => {
+    onFilterChange((prev) => ({
+      ...prev,
+      page: 1,
+      sortBy: field,
+      sortOrder: order,
+    }));
+    setActiveDropdown(null);
+  };
+
   const handleSelectUser = (user: WorkspaceUser | null) => {
     onFilterChange((prev) => ({
       ...prev,
       page: 1,
       assigneeId: user ? user.id : undefined,
     }));
-    setIsAssigneeDropdownOpen(false);
-  };
-
-  const handleStatusChange = (e: ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value;
-    onFilterChange((prev) => ({
-      ...prev,
-      page: 1,
-      status: value === "all" ? undefined : (value as TicketStatus),
-    }));
-  };
-
-  const handlePriorityChange = (e: ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value;
-    onFilterChange((prev) => ({
-      ...prev,
-      page: 1,
-      priority: value === "all" ? undefined : (value as TicketPriority),
-    }));
+    setActiveDropdown(null);
   };
 
   const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -142,6 +195,8 @@ export default function TicketFilterBar({
       priority: undefined,
       search: undefined,
       assigneeId: undefined,
+      sortBy: undefined,
+      sortOrder: undefined,
     });
   };
 
@@ -160,13 +215,19 @@ export default function TicketFilterBar({
       .toUpperCase();
 
   const hasActiveFilters = Boolean(
-    filters.status || filters.priority || filters.search || filters.assigneeId,
+    filters.status ||
+    filters.priority ||
+    filters.search ||
+    filters.assigneeId ||
+    filters.sortBy,
   );
 
   return (
-    <div className="rounded-2xl border border-slate-200/80 bg-white shadow-sm">
+    <div
+      ref={filterBarRef}
+      className="rounded-2xl border border-slate-200/80 bg-white shadow-sm"
+    >
       <div className="flex flex-col gap-3 p-3 lg:flex-row lg:items-center">
-        {/* Main Search Input */}
         <div className="relative min-w-0 flex-1">
           <Search
             size={16}
@@ -189,58 +250,144 @@ export default function TicketFilterBar({
         <div className="hidden h-7 w-px bg-slate-200 lg:block" />
 
         <div className="flex flex-wrap items-center gap-2">
-          {/* Status Dropdown */}
-          <div className="relative group inline-flex items-center">
-            <span className="pointer-events-none absolute left-3 z-10 h-2 w-2 rounded-full bg-blue-500" />
-            <select
-              value={filters.status || "all"}
-              onChange={handleStatusChange}
-              className="h-10 appearance-none rounded-xl border border-slate-200 bg-white pl-7 pr-8 text-xs font-semibold text-slate-600 transition hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 cursor-pointer"
-            >
-              {STATUS_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-            <ChevronDown
-              size={14}
-              className="pointer-events-none absolute right-2.5 text-slate-400 transition-transform group-hover:translate-y-0.5"
-            />
-          </div>
-
-          {/* Priority Dropdown */}
-          <div className="relative group inline-flex items-center">
-            <SlidersHorizontal
-              size={14}
-              className="pointer-events-none absolute left-3 z-10 text-slate-400"
-            />
-            <select
-              value={filters.priority || "all"}
-              onChange={handlePriorityChange}
-              className="h-10 appearance-none rounded-xl border border-slate-200 bg-white pl-8 pr-8 text-xs font-semibold text-slate-600 transition hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 cursor-pointer"
-            >
-              {PRIORITY_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-            <ChevronDown
-              size={14}
-              className="pointer-events-none absolute right-2.5 text-slate-400 transition-transform group-hover:translate-y-0.5"
-            />
-          </div>
-
-          {/* GitHub-Style Assignee Filter Popover */}
-          <div className="relative" ref={dropdownRef}>
+          <div className="relative">
             <button
               type="button"
-              onClick={() => setIsAssigneeDropdownOpen((prev) => !prev)}
+              onClick={() =>
+                setActiveDropdown((prev) =>
+                  prev === "status" ? null : "status",
+                )
+              }
+              className={`inline-flex h-10 items-center gap-2 rounded-xl border px-3 text-xs font-semibold transition cursor-pointer ${
+                filters.status
+                  ? "border-indigo-300 bg-indigo-50 text-indigo-700"
+                  : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50"
+              }`}
+            >
+              <span
+                className={`h-2 w-2 rounded-full ${currentStatusObj?.colorDot || "bg-slate-400"}`}
+              />
+              <span>
+                {filters.status
+                  ? `Status: ${currentStatusObj?.label}`
+                  : "Status"}
+              </span>
+              <ChevronDown size={12} className="text-slate-400" />
+            </button>
+
+            {activeDropdown === "status" && (
+              <div className="absolute left-0 lg:left-auto lg:right-0 top-11 z-30 w-52 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-xl ring-1 ring-slate-950/5 animate-in fade-in zoom-in-95 duration-100">
+                <div className="px-2.5 py-1.5 border-b border-slate-100">
+                  <p className="text-[11px] font-bold text-slate-500">
+                    Filter by status
+                  </p>
+                </div>
+                <div className="mt-1 space-y-0.5">
+                  {STATUS_OPTIONS.map((opt) => {
+                    const isSelected = (filters.status || "all") === opt.value;
+                    return (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => handleSelectStatus(opt.value)}
+                        className={`flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-left text-xs font-medium transition-colors cursor-pointer ${
+                          isSelected
+                            ? "bg-indigo-50 text-indigo-700 font-bold"
+                            : "text-slate-700 hover:bg-slate-50"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`h-2 w-2 rounded-full ${opt.colorDot}`}
+                          />
+                          <span>{opt.label}</span>
+                        </div>
+                        {isSelected && (
+                          <Check
+                            size={14}
+                            className="text-indigo-600 shrink-0"
+                          />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() =>
+                setActiveDropdown((prev) =>
+                  prev === "priority" ? null : "priority",
+                )
+              }
+              className={`inline-flex h-10 items-center gap-2 rounded-xl border px-3 text-xs font-semibold transition cursor-pointer ${
+                filters.priority
+                  ? "border-indigo-300 bg-indigo-50 text-indigo-700"
+                  : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50"
+              }`}
+            >
+              <SlidersHorizontal size={14} className="text-slate-400" />
+              <span>
+                {filters.priority
+                  ? `Priority: ${currentPriorityObj?.label}`
+                  : "Priority"}
+              </span>
+              <ChevronDown size={12} className="text-slate-400" />
+            </button>
+
+            {activeDropdown === "priority" && (
+              <div className="absolute left-0 lg:left-auto lg:right-0 top-11 z-30 w-48 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-xl ring-1 ring-slate-950/5 animate-in fade-in zoom-in-95 duration-100">
+                <div className="px-2.5 py-1.5 border-b border-slate-100">
+                  <p className="text-[11px] font-bold text-slate-500">
+                    Filter by priority
+                  </p>
+                </div>
+                <div className="mt-1 space-y-0.5">
+                  {PRIORITY_OPTIONS.map((opt) => {
+                    const isSelected =
+                      (filters.priority || "all") === opt.value;
+                    return (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => handleSelectPriority(opt.value)}
+                        className={`flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-left text-xs transition-colors cursor-pointer ${
+                          isSelected
+                            ? "bg-indigo-50 text-indigo-700 font-bold"
+                            : `${opt.colorClass} hover:bg-slate-50`
+                        }`}
+                      >
+                        <span>{opt.label}</span>
+                        {isSelected && (
+                          <Check
+                            size={14}
+                            className="text-indigo-600 shrink-0"
+                          />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() =>
+                setActiveDropdown((prev) =>
+                  prev === "assignee" ? null : "assignee",
+                )
+              }
               className={`inline-flex h-10 items-center gap-2 rounded-xl border px-3 text-xs font-semibold transition cursor-pointer ${
                 selectedUser
                   ? "border-indigo-300 bg-indigo-50 text-indigo-700"
-                  : "border-slate-200 bg-white text-slate-600 hover:border-indigo-200 hover:bg-indigo-50/50 hover:text-indigo-600"
+                  : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50"
               }`}
             >
               <UserRound size={14} />
@@ -253,7 +400,7 @@ export default function TicketFilterBar({
               <ChevronDown size={12} className="text-slate-400" />
             </button>
 
-            {isAssigneeDropdownOpen && (
+            {activeDropdown === "assignee" && (
               <div className="absolute right-0 top-11 z-30 w-72 rounded-2xl border border-slate-200 bg-white p-2 shadow-xl ring-1 ring-slate-950/5 animate-in fade-in zoom-in-95 duration-100">
                 <div className="px-2 pt-1 pb-2">
                   <p className="text-[11px] font-bold text-slate-500">
@@ -337,7 +484,70 @@ export default function TicketFilterBar({
             )}
           </div>
 
-          {/* Reset Filters Action */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() =>
+                setActiveDropdown((prev) => (prev === "sort" ? null : "sort"))
+              }
+              className={`inline-flex h-10 items-center gap-2 rounded-xl border px-3 text-xs font-semibold transition cursor-pointer ${
+                filters.sortBy
+                  ? "border-indigo-300 bg-indigo-50 text-indigo-700"
+                  : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50"
+              }`}
+            >
+              <ArrowUpDown size={14} className="text-slate-400" />
+              <span>
+                {currentSortObj ? `Sort: ${currentSortObj.label}` : "Sort"}
+              </span>
+              <ChevronDown size={12} className="text-slate-400" />
+            </button>
+
+            {activeDropdown === "sort" && (
+              <div className="absolute right-0 top-11 z-30 w-56 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-xl ring-1 ring-slate-950/5 animate-in fade-in zoom-in-95 duration-100">
+                <div className="px-2.5 py-1.5 border-b border-slate-100">
+                  <p className="text-[11px] font-bold text-slate-500">
+                    Sort tickets by
+                  </p>
+                </div>
+                <div className="mt-1 space-y-0.5">
+                  {SORT_OPTIONS.map((opt) => {
+                    const isSelected =
+                      filters.sortBy === opt.field &&
+                      filters.sortOrder === opt.order;
+                    return (
+                      <button
+                        key={`${opt.field}-${opt.order}`}
+                        type="button"
+                        onClick={() => handleSelectSort(opt.field, opt.order)}
+                        className={`flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-left text-xs transition-colors cursor-pointer ${
+                          isSelected
+                            ? "bg-indigo-50 text-indigo-700 font-bold"
+                            : "text-slate-700 hover:bg-slate-50"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          {opt.order === "asc" ? (
+                            <ArrowUp size={13} className="text-slate-400" />
+                          ) : (
+                            <ArrowDown size={13} className="text-slate-400" />
+                          )}
+                          <span>{opt.label}</span>
+                        </div>
+                        {isSelected && (
+                          <Check
+                            size={14}
+                            className="text-indigo-600 shrink-0"
+                          />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+
           <button
             type="button"
             onClick={handleClearFilters}
@@ -350,7 +560,6 @@ export default function TicketFilterBar({
 
         <div className="hidden h-7 w-px bg-slate-200 lg:block" />
 
-        {/* Functional View Switcher */}
         <div className="flex h-10 items-center rounded-xl border border-slate-200 bg-slate-50 p-1">
           <button
             type="button"
@@ -379,7 +588,6 @@ export default function TicketFilterBar({
         </div>
       </div>
 
-      {/* Active Filter Badges Bar */}
       {hasActiveFilters && (
         <div className="flex flex-wrap items-center gap-2 border-t border-slate-100 px-4 py-3">
           <span className="mr-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
@@ -423,6 +631,25 @@ export default function TicketFilterBar({
                 type="button"
                 onClick={() =>
                   onFilterChange((p) => ({ ...p, assigneeId: undefined }))
+                }
+                className="rounded-full p-0.5 transition hover:bg-indigo-100 cursor-pointer"
+              >
+                <X size={11} />
+              </button>
+            </span>
+          )}
+
+          {currentSortObj && (
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-indigo-100 bg-indigo-50 px-2.5 py-1 text-[10px] font-semibold text-indigo-700">
+              Sort: {currentSortObj.label}
+              <button
+                type="button"
+                onClick={() =>
+                  onFilterChange((p) => ({
+                    ...p,
+                    sortBy: undefined,
+                    sortOrder: undefined,
+                  }))
                 }
                 className="rounded-full p-0.5 transition hover:bg-indigo-100 cursor-pointer"
               >

@@ -1,6 +1,7 @@
 export type TicketStatus = "Open" | "InProgress" | "Resolved" | "Closed";
 export type TicketPriority = "Low" | "Medium" | "High" | "Urgent";
-
+export type SortField = "createdAt" | "updatedAt" | "priority";
+export type SortOrder = "asc" | "desc";
 export interface TicketDto {
   id: string;
   ticketNumber: string;
@@ -43,6 +44,8 @@ export interface TicketFilters {
   search?: string;
   page?: number;
   pageSize?: number;
+  sortBy?: SortField;
+  sortOrder?: SortOrder;
   assigneeId?: string;
   createdById?: string;
 }

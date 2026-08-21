@@ -12,11 +12,12 @@ export default function TicketListPage() {
   const [filters, setFilters] = useState<TicketFilters>({
     page: 1,
     pageSize: 10,
+    sortBy: "createdAt",
+    sortOrder: "desc",
   });
 
   const [viewMode, setViewMode] = useState<"list" | "board">("list");
 
-  // Hook 1: Fetch total system-wide stats from /api/v1/tickets/stats
   const {
     totalCount: statsTotal,
     open,
@@ -25,7 +26,6 @@ export default function TicketListPage() {
     closed,
   } = useTicketStats();
 
-  // Hook 2: Fetch paginated & filtered list for table/kanban view
   const { data: ticketsData, isLoading } = useGetTickets(filters);
 
   const tickets = ticketsData?.items || [];
@@ -52,17 +52,8 @@ export default function TicketListPage() {
               workspace.
             </p>
           </div>
-
-          <button
-            type="button"
-            className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:bg-indigo-600 cursor-pointer"
-          >
-            <Plus size={17} strokeWidth={2.2} />
-            Create ticket
-          </button>
         </div>
 
-        {/* Ticket Meta Header with Global SQL Aggregations */}
         <div className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs">
           <span className="font-semibold text-slate-700">
             {statsTotal} total tickets
