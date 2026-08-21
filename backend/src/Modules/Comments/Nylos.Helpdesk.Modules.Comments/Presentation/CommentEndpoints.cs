@@ -14,7 +14,7 @@ public static class CommentsEndpoints
 {
     public static void MapCommentsEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("api/v1/tickets/{ticketId:guid}/comments")
+        var group = app.MapGroup("/api/v1/tickets/{ticketId:guid}/comments")
             .WithTags("Comments")
             .RequireAuthorization();
 
@@ -32,7 +32,7 @@ public static class CommentsEndpoints
         .Produces(StatusCodes.Status200OK);
 
         // Add a new comment to a ticket
-        group.MapPost("", async (
+        group.MapPost("/", async (
     Guid ticketId,
     CreateCommentRequest request,
     ClaimsPrincipal user,

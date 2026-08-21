@@ -11,5 +11,6 @@ public record TicketSummaryDto(
     TicketPriority Priority,
     Guid CreatedById,
     Guid? AssigneeId,
+    string? AssigneeName,
     DateTime CreatedAt
 );

@@ -6,7 +6,8 @@
     <ProjectReference Include="..\Nylos.Helpdesk.Modules.Tickets.Contracts\Nylos.Helpdesk.Modules.Tickets.Contracts.csproj" />
     <ProjectReference Include="..\..\..\Shared\Nylos.Helpdesk.Shared.Abstractions\Nylos.Helpdesk.Shared.Abstractions.csproj" />
     <ProjectReference Include="..\..\..\Shared\Nylos.Helpdesk.Shared.Infrastructure\Nylos.Helpdesk.Shared.Infrastructure.csproj" />
-    
+   <ProjectReference Include="..\..\Users\Nylos.Helpdesk.Modules.Users.Contracts\Nylos.Helpdesk.Modules.Users.Contracts.csproj" />
+
   </ItemGroup>
 
   <ItemGroup>

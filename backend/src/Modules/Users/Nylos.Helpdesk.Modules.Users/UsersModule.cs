@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Nylos.Helpdesk.Modules.Users.Infrastructure.Persistence;
 using Nylos.Helpdesk.Modules.Users.Application.Abstractions;
 using Nylos.Helpdesk.Modules.Users.Infrastructure.Services;
+using Nylos.Helpdesk.Modules.Users.Contracts;
 
 namespace Nylos.Helpdesk.Modules.Users;
 
@@ -20,6 +21,7 @@ public static class UsersModule
                 npgsql.MigrationsHistoryTable("__EFMigrationsHistory", "users")));
         services.AddScoped<IPasswordHasher, BCryptPasswordHasher>();
         services.AddScoped<IJwtProvider, JwtProvider>();
+        services.AddScoped<IUserModuleContract, UserContractService>();
         services.AddMediatR(cfg =>
             cfg.RegisterServicesFromAssembly(typeof(UsersModule).Assembly));
         services.AddValidatorsFromAssembly(typeof(UsersModule).Assembly);

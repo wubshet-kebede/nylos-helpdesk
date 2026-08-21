@@ -13,6 +13,7 @@ using FluentValidation;
 using Nylos.Helpdesk.Modules.Comments;
 using Nylos.Helpdesk.Modules.Users.Infrastructure.Persistence;
 using Nylos.Helpdesk.Modules.Users.Presentation;
+using Nylos.Helpdesk.Modules.Comments.Presentation;
 using Nylos.Helpdesk.Shared.Infrastructure;
 using System.Text.Json.Serialization;
 var builder = WebApplication.CreateBuilder(args);
@@ -102,6 +103,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapTicketEndpoints();
 app.MapUserEndpoints();
+app.MapCommentsEndpoints();
 // Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
