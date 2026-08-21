@@ -41,11 +41,33 @@ Nylos Helpdesk provides a centralized workspace where team members can create an
 - **Automatic Default Admin Seeding:** On application startup, the API runs a seed initializer that creates the default administrator account only when it is absent, preventing duplicate seed users after application restarts.
 - **OpenAPI Documentation:** API endpoints are exposed as an OpenAPI JSON document in the development environment at [`http://localhost:5231/openapi/v1.json`](http://localhost:5231/openapi/v1.json).
 
-### 🎨 Frontend Quality & User Experience 
-- **TanStack Query:** Client caching, background refetching, mutation handling, and optimistic UI updates.
-- **Form Handling:** Forms use `react-hook-form` and `zod` validation schemas aligned with backend validation.
-- **Complete UI States:** Loading indicators, empty states, filter-empty states, and API error alerts are handled throughout the application.
-- **Responsive Design:** The application is designed to work across desktop and smaller mobile screen sizes.
+### 🎨 Frontend Quality & User Experience
+
+- **TanStack Query:** Manages server state for tickets, comments, and users through caching, background refetching, mutation handling, and cache invalidation.
+
+- **Form handling:** Forms use `react-hook-form` with `zod` schemas for client-side validation aligned with backend validation rules.
+
+- **Complete UI states:** The application handles loading, empty, filtered-empty, validation, and API-error states throughout the interface.
+
+- **Responsive design:** The UI is designed to work across desktop and smaller mobile screen sizes.
+
+- **Centralized Axios client:** The frontend uses a shared Axios client configured with the API base URL from `VITE_API_BASE_URL`, JSON request headers, a 10-second timeout, and `withCredentials: true`.
+
+- **Cookie-based authentication:** Authentication cookies are sent automatically by the browser with API requests. The frontend does not read, store, or attach authentication tokens manually.
+
+- **Centralized error handling:** The shared Axios client provides consistent handling for API failures, allowing pages and components to display predictable validation and error feedback.
+
+> **Security note:** Authentication cookies use the `HttpOnly` flag, so they cannot be accessed through JavaScript or `document.cookie`. For cross-origin frontend/API requests, `withCredentials: true` instructs the browser to include cookies. The backend must also allow credentials through its CORS policy and use an explicit allowed origin rather than `*`. [278][279][280]
+```ts
+const apiClient = axios.create({
+  baseURL: import.meta.env.VITE_API_BASE_URL,
+  headers: {
+    "Content-Type": "application/json",
+  },
+  withCredentials: true,
+  timeout: 10_000,
+});
+```
 
 ## Database Setup
 
@@ -380,7 +402,7 @@ users.users (1) ──────────────── (*) comments.co
 
 - **Schema ownership:** Tables are partitioned into `users`, `tickets`, and `comments` schemas to reflect module ownership.
 - **Referential integrity:** Cross-schema foreign keys protect the relationships between users, tickets, comments, and refresh tokens. PostgreSQL foreign keys enforce that referenced records exist. [203]
-- **Ticket-number uniqueness:** `ticket_number` is unique and serves as a friendly reference for users, while `id` remains the internal primary key.
+- **Ticket reference number:** Each ticket receives a unique human-readable reference in the format `#TK-YYYY-NNNNNN`, for example `#TK-2026-000016`. The numeric sequence starts again each calendar year, so the first ticket created in 2027 would be `#TK-2027-000001`. The internal `id` remains the immutable primary key used by the application and database relationships.
 - **Workflow validation:** The backend validates ticket transitions: `Open → InProgress → Resolved → Closed`. Invalid transitions are rejected server-side.
 - **Password protection:** Passwords are stored only as hashes, never plaintext.
 - **Refresh-token protection:** The database stores refresh-token hashes, tracks expiry, and supports revocation. A successful refresh should invalidate the old token and issue a new one.
@@ -409,7 +431,7 @@ frontend/
 │   │   ├── dashboard/              # Dashboard-specific components
 │   │   ├── landing/                # Landing-page components
 │   │   ├── tickets/                # Ticket list, card, form, and detail components
-│   │   └── ui/                     # Generic UI primitives
+│   │   └── ui/                     # Custom UI primitives
 │   │
 │   ├── constants/                  # Shared constants and application configuration
 │   ├── context/                    # React Context providers, including authentication state
@@ -585,7 +607,7 @@ Open the Vite URL displayed in the terminal, usually `http://localhost:5173`.
 
 ## Assumptions
 
-To deliver a complete, maintainable application within the 6–10 hour assessment time box, the following product, security, and architecture assumptions were made.
+To deliver a complete, maintainable application within assessment time box, the following product, security, and architecture assumptions were made.
 
 ### Domain and business rules
 
