@@ -19,7 +19,7 @@ import Modal from "../common/Modal";
 import UserAssignModal, { type WorkspaceUser } from "./UserAssignModal";
 import { useDeleteTicket, useAssignTicket } from "../../hooks/useTicketsQuery";
 import { useGetUsers } from "../../hooks/useUsersQuery";
-
+import { useAuth } from "../../context/AuthContext";
 interface TicketTableProps {
   tickets: TicketDto[];
   isLoading: boolean;
@@ -76,11 +76,13 @@ export default function TicketTable({ tickets, isLoading }: TicketTableProps) {
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
 
   const menuRef = useRef<HTMLDivElement | null>(null);
+  const { user: currentUser } = useAuth();
 
   const { mutateAsync: deleteTicket, isPending: isDeleting } =
     useDeleteTicket();
   const { mutateAsync: assignTicket } = useAssignTicket();
   const { data: users = [], isLoading: isLoadingUsers } = useGetUsers();
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -142,30 +144,25 @@ export default function TicketTable({ tickets, isLoading }: TicketTableProps) {
   }
 
   return (
-    <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
-      {/* Table Header */}
+    <section className="rounded-2xl border border-slate-200/80 bg-white shadow-sm">
+      {/* table header */}
       <div className="hidden border-b border-slate-100 bg-slate-50/50 px-6 py-3 md:grid md:grid-cols-[minmax(280px,1fr)_120px_140px_100px_110px_40px] md:items-center md:gap-4">
-        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-          Ticket
-        </span>
-        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-          Priority
-        </span>
-        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-          Status
-        </span>
-        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-          Assignee
-        </span>
-        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-          Created
-        </span>
+        {["Ticket", "Priority", "Status", "Assignee", "Created"].map(
+          (header) => (
+            <span
+              key={header}
+              className="text-[10px] font-bold uppercase tracking-wider text-slate-400"
+            >
+              {header}
+            </span>
+          ),
+        )}
         <span />
       </div>
 
-      {/* Ticket Rows */}
+      {/* ticket rows */}
       <div className="divide-y divide-slate-100">
-        {tickets.map((ticket) => {
+        {tickets.map((ticket, index) => {
           const priorityClass = getPriorityStyles(ticket.priority);
           const statusClass = getStatusStyles(ticket.status);
           const formattedDate = new Date(ticket.createdAt).toLocaleDateString(
@@ -180,27 +177,83 @@ export default function TicketTable({ tickets, isLoading }: TicketTableProps) {
           const assigneeInitials = getInitials(assigneeName);
 
           const isMenuOpen = activeMenuId === ticket.id;
+          const isTopRow = index < 2;
+          const isCreator = currentUser?.id === ticket.createdById;
+          const isAdmin = currentUser?.userRole === "Admin";
+
+          const canEdit = isCreator || isAdmin;
+          const canAssign = isAdmin || isCreator;
+          const canDelete = isCreator || isAdmin;
+
+          const hasAnyPermission = canEdit || canAssign || canDelete;
 
           return (
             <div
               key={ticket.id}
               className="group relative transition-colors duration-150 hover:bg-slate-50/60"
             >
+              {/* desktop View */}
               <div className="hidden min-w-0 grid-cols-[minmax(280px,1fr)_120px_140px_100px_110px_40px] items-center gap-4 px-6 py-4 md:grid">
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-bold tracking-wide text-slate-400">
-                      #{ticket.ticketNumber}
-                    </span>
-                    <span className="h-1 w-1 rounded-full bg-slate-300" />
-                    <span className="text-[10px] text-slate-400">Issue</span>
+                {/* Container stays group/tooltip */}
+                <div className="relative group/tooltip min-w-0 max-w-full">
+                  <div className="cursor-pointer">
+                    <p className="mt-1 truncate text-sm font-semibold text-slate-800 transition-colors group-hover/tooltip:text-indigo-600">
+                      {ticket.title}
+                    </p>
+                    <p className="mt-1 truncate text-xs text-slate-400">
+                      {ticket.description}
+                    </p>
                   </div>
-                  <p className="mt-1 truncate text-sm font-semibold text-slate-800 transition-colors group-hover:text-indigo-600">
-                    {ticket.title}
-                  </p>
-                  <p className="mt-1 truncate text-xs text-slate-400">
-                    {ticket.description}
-                  </p>
+
+                  {/* Smooth Scrollable Tooltip  */}
+                  <div
+                    className={`absolute left-0 z-50 hidden w-80 max-w-sm rounded-xl border border-slate-200 bg-white p-4 shadow-xl transition-all duration-150 group-hover/tooltip:block pointer-events-auto ${
+                      isTopRow
+                        ? "top-full mt-2 before:absolute before:-top-3 before:left-0 before:h-3 before:w-full"
+                        : "bottom-full mb-2 before:absolute before:-bottom-3 before:left-0 before:h-3 before:w-full"
+                    }`}
+                  >
+                    {/* tooltip Content & scroll Area */}
+                    <div className="flex items-center justify-between pb-2">
+                      <span className="text-[11px] font-bold text-indigo-600">
+                        #{ticket.ticketNumber}
+                      </span>
+                      <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-500">
+                        Issue Details
+                      </span>
+                    </div>
+
+                    <hr className="border-slate-100" />
+
+                    <div className="py-2.5">
+                      <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                        Title
+                      </p>
+                      <p className="mt-1 text-sm font-bold leading-snug text-slate-900 break-words">
+                        {ticket.title}
+                      </p>
+                    </div>
+
+                    <hr className="border-slate-100" />
+
+                    <div className="pt-2.5">
+                      <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                        Description
+                      </p>
+                      <p className="mt-1 max-h-48 overflow-y-auto text-xs leading-relaxed text-slate-600 whitespace-pre-wrap break-words">
+                        {ticket.description || "No description provided."}
+                      </p>
+                    </div>
+
+                    {/* Dynamic Arrow */}
+                    <div
+                      className={`absolute left-6 border-4 border-transparent ${
+                        isTopRow
+                          ? "bottom-full -mb-1 border-b-white"
+                          : "top-full -mt-1 border-t-white"
+                      }`}
+                    />
+                  </div>
                 </div>
 
                 <div>
@@ -223,11 +276,11 @@ export default function TicketTable({ tickets, isLoading }: TicketTableProps) {
                 <div className="flex items-center gap-2">
                   <div
                     title={assigneeName}
-                    className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-slate-100 text-[9px] font-bold text-slate-600 shadow-sm"
+                    className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-slate-100 text-[9px] font-bold text-slate-600 shadow-xs"
                   >
                     {assigneeInitials}
                   </div>
-                  <span className="hidden lg:inline text-xs font-semibold text-slate-600 truncate max-w-[90px]">
+                  <span className="hidden max-w-[90px] truncate text-xs font-semibold text-slate-600 lg:inline">
                     {assigneeName}
                   </span>
                 </div>
@@ -236,74 +289,74 @@ export default function TicketTable({ tickets, isLoading }: TicketTableProps) {
                   <Clock3 size={13} />
                   {formattedDate}
                 </div>
-
-                {/* Popover Action Menu */}
                 <div className="relative" ref={isMenuOpen ? menuRef : null}>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setActiveMenuId(isMenuOpen ? null : ticket.id);
-                    }}
-                    title="Actions"
-                    className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors cursor-pointer"
-                  >
-                    <MoreHorizontal size={16} />
-                  </button>
+                  {hasAnyPermission && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setActiveMenuId(isMenuOpen ? null : ticket.id);
+                      }}
+                      title="Actions"
+                      className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
+                    >
+                      <MoreHorizontal size={16} />
+                    </button>
+                  )}
 
                   {isMenuOpen && (
-                    <div className="absolute right-0 top-9 z-20 w-40 rounded-xl border border-slate-200/80 bg-white p-1 shadow-lg ring-1 ring-slate-950/5 animate-in fade-in zoom-in-95 duration-100">
-                      {/* Edit Option */}
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedTicket(ticket);
-                          setActiveMenuId(null);
-                        }}
-                        className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-xs font-semibold text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
-                      >
-                        <Pencil size={13} className="text-slate-400" />
-                        <span>Edit Ticket</span>
-                      </button>
+                    <div className="absolute right-0 top-9 z-20 w-40 animate-in fade-in zoom-in-95 rounded-xl border border-slate-200/80 bg-white p-1 shadow-lg ring-1 ring-slate-950/5 duration-100">
+                      {canEdit && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedTicket(ticket);
+                            setActiveMenuId(null);
+                          }}
+                          className="flex w-full cursor-pointer items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100"
+                        >
+                          <Pencil size={13} className="text-slate-400" />
+                          <span>Edit Ticket</span>
+                        </button>
+                      )}
 
-                      {/* Assign Option */}
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setTicketToAssign(ticket);
-                          setActiveMenuId(null);
-                        }}
-                        className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-xs font-semibold text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors cursor-pointer"
-                      >
-                        <UserPlus size={13} className="text-slate-400" />
-                        <span>Assign Ticket</span>
-                      </button>
+                      {canAssign && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setTicketToAssign(ticket);
+                            setActiveMenuId(null);
+                          }}
+                          className="flex w-full cursor-pointer items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-xs font-semibold text-slate-700 transition-colors hover:bg-indigo-50 hover:text-indigo-600"
+                        >
+                          <UserPlus size={13} className="text-slate-400" />
+                          <span>Assign Ticket</span>
+                        </button>
+                      )}
 
-                      {/* Delete Option */}
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setTicketToDelete(ticket);
-                          setActiveMenuId(null);
-                        }}
-                        className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-xs font-semibold text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
-                      >
-                        <Trash2 size={13} className="text-rose-500" />
-                        <span>Delete</span>
-                      </button>
+                      {canDelete && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setTicketToDelete(ticket);
+                            setActiveMenuId(null);
+                          }}
+                          className="flex w-full cursor-pointer items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-xs font-semibold text-rose-600 transition-colors hover:bg-rose-50"
+                        >
+                          <Trash2 size={13} className="text-rose-500" />
+                          <span>Delete</span>
+                        </button>
+                      )}
                     </div>
                   )}
                 </div>
               </div>
 
-              {/* Mobile View */}
-              <button
-                type="button"
-                className="flex w-full items-start gap-3 px-5 py-4 text-left md:hidden cursor-pointer"
-              >
+              {/* mobile view */}
+              <div className="flex w-full items-start gap-3 px-5 py-4 text-left md:hidden">
                 <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-50 text-slate-400 group-hover:bg-indigo-50 group-hover:text-indigo-600">
                   <CircleDot size={16} />
                 </div>
@@ -311,7 +364,7 @@ export default function TicketTable({ tickets, isLoading }: TicketTableProps) {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <span className="text-[10px] font-bold text-slate-400">
-                      #{ticket.id.substring(0, 8)}
+                      #{ticket.ticketNumber}
                     </span>
                     <span className="text-[10px] text-slate-300">•</span>
                     <span className="text-[10px] text-slate-400">
@@ -319,9 +372,62 @@ export default function TicketTable({ tickets, isLoading }: TicketTableProps) {
                     </span>
                   </div>
 
-                  <p className="mt-1.5 truncate text-sm font-semibold text-slate-800 group-hover:text-indigo-600">
-                    {ticket.title}
-                  </p>
+                  <div className="relative group/tooltip mt-1.5 max-w-full">
+                    <p className="cursor-pointer truncate text-sm font-semibold text-slate-800 transition-colors group-hover/tooltip:text-indigo-600">
+                      {ticket.title}
+                    </p>
+                    <p className="mt-0.5 truncate text-xs text-slate-400">
+                      {ticket.description}
+                    </p>
+
+                    {/* mobile tooltip */}
+                    <div
+                      className={`absolute left-0 z-50 hidden w-72 max-w-xs rounded-xl border border-slate-200 bg-white p-4 shadow-xl transition-all duration-150 group-hover/tooltip:block pointer-events-auto ${
+                        isTopRow
+                          ? "top-full mt-2 before:absolute before:-top-3 before:left-0 before:h-3 before:w-full"
+                          : "bottom-full mb-2 before:absolute before:-bottom-3 before:left-0 before:h-3 before:w-full"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between pb-2">
+                        <span className="text-[11px] font-bold text-indigo-600">
+                          #{ticket.ticketNumber}
+                        </span>
+                        <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-500">
+                          Issue Details
+                        </span>
+                      </div>
+
+                      <hr className="border-slate-100" />
+
+                      <div className="py-2.5">
+                        <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                          Title
+                        </p>
+                        <p className="mt-1 text-xs font-bold leading-snug text-slate-900 break-words">
+                          {ticket.title}
+                        </p>
+                      </div>
+
+                      <hr className="border-slate-100" />
+
+                      <div className="pt-2.5">
+                        <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                          Description
+                        </p>
+                        <p className="mt-1 max-h-36 overflow-y-auto text-xs leading-relaxed text-slate-600 whitespace-pre-wrap break-words">
+                          {ticket.description || "No description provided."}
+                        </p>
+                      </div>
+
+                      <div
+                        className={`absolute left-4 border-4 border-transparent ${
+                          isTopRow
+                            ? "bottom-full -mb-1 border-b-white"
+                            : "top-full -mt-1 border-t-white"
+                        }`}
+                      />
+                    </div>
+                  </div>
 
                   <div className="mt-2.5 flex flex-wrap items-center gap-2">
                     <span
@@ -341,7 +447,7 @@ export default function TicketTable({ tickets, isLoading }: TicketTableProps) {
                   size={15}
                   className="mt-1 shrink-0 text-slate-300 transition-colors group-hover:text-indigo-500"
                 />
-              </button>
+              </div>
             </div>
           );
         })}
@@ -356,7 +462,7 @@ export default function TicketTable({ tickets, isLoading }: TicketTableProps) {
         </p>
       </div>
 
-      {/* Edit Ticket Modal */}
+      {/* edit ticket modal */}
       {selectedTicket && (
         <EditTicketModal
           isOpen={Boolean(selectedTicket)}
@@ -365,7 +471,7 @@ export default function TicketTable({ tickets, isLoading }: TicketTableProps) {
         />
       )}
 
-      {/* Delete Confirmation Modal */}
+      {/* delete confirmation modal */}
       {ticketToDelete && (
         <Modal
           isOpen={Boolean(ticketToDelete)}
@@ -377,7 +483,7 @@ export default function TicketTable({ tickets, isLoading }: TicketTableProps) {
           <div className="space-y-4 pt-2">
             <div className="flex items-center gap-3 rounded-xl bg-rose-50 p-3 text-rose-800">
               <AlertTriangle size={18} className="shrink-0 text-rose-600" />
-              <p className="text-xs font-semibold truncate">
+              <p className="truncate text-xs font-semibold">
                 {ticketToDelete.title}
               </p>
             </div>
@@ -386,7 +492,7 @@ export default function TicketTable({ tickets, isLoading }: TicketTableProps) {
               <button
                 type="button"
                 onClick={() => setTicketToDelete(null)}
-                className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-600 transition hover:bg-slate-50 cursor-pointer"
+                className="cursor-pointer rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-600 transition hover:bg-slate-50"
               >
                 Cancel
               </button>
@@ -395,7 +501,7 @@ export default function TicketTable({ tickets, isLoading }: TicketTableProps) {
                 type="button"
                 disabled={isDeleting}
                 onClick={handleDeleteConfirm}
-                className="inline-flex items-center gap-1.5 rounded-xl bg-rose-600 px-4 py-2 text-xs font-bold text-white transition hover:bg-rose-700 disabled:opacity-50 cursor-pointer"
+                className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl bg-rose-600 px-4 py-2 text-xs font-bold text-white transition hover:bg-rose-700 disabled:opacity-50"
               >
                 {isDeleting ? "Deleting..." : "Delete Permanently"}
               </button>
@@ -403,6 +509,7 @@ export default function TicketTable({ tickets, isLoading }: TicketTableProps) {
           </div>
         </Modal>
       )}
+
       {ticketToAssign && (
         <UserAssignModal
           isOpen={Boolean(ticketToAssign)}

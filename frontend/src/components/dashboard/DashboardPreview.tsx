@@ -1,8 +1,8 @@
 import {
   LayoutDashboard,
   Ticket,
-  MessageSquare,
-  Users,
+  SquarePen,
+  Inbox,
   Plus,
   ChevronRight,
   AlertCircle,
@@ -12,7 +12,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 
-const PREVIEW_PRIORITY_MAP = {
+const PreviewPriorityMap = {
   High: { icon: AlertCircle, classes: "bg-red-50 text-red-700 border-red-100" },
   Medium: {
     icon: AlertTriangle,
@@ -24,7 +24,7 @@ const PREVIEW_PRIORITY_MAP = {
   },
 } as const;
 
-const PREVIEW_STATUS_MAP = {
+const PreviewStatusMap = {
   Open: { icon: Clock, classes: "bg-blue-50 text-blue-700 border-blue-100" },
   "In Progress": {
     icon: Clock,
@@ -36,7 +36,7 @@ const PREVIEW_STATUS_MAP = {
   },
 } as const;
 
-const PREVIEW_TICKETS = [
+const PreviewTickets = [
   {
     id: "#NY-1042",
     title: "Database connection drops",
@@ -60,11 +60,9 @@ const PREVIEW_TICKETS = [
 export default function DashboardPreview() {
   return (
     <div className="relative mx-auto mt-16 max-w-6xl text-left">
-      {/* Dynamic Backing Glow decoration */}
       <div className="absolute -inset-10 -z-10 rounded-[3rem] bg-indigo-500/10 blur-3xl" />
 
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-slate-900/10">
-        {/* Browser Top Window Chrome Bar */}
         <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-5 py-3">
           <div className="flex gap-2">
             <span className="h-3 w-3 rounded-full bg-red-400" />
@@ -80,39 +78,36 @@ export default function DashboardPreview() {
         </div>
 
         <div className="grid min-h-120 md:grid-cols-[200px_1fr]">
-          {/* Dashboard Left Sidebar Layout */}
-          <aside className="hidden border-r border-slate-200 bg-slate-950 p-5 md:block">
+          <aside className="hidden border-r border-slate-200 bg-slate-50 p-5 md:block">
             <div className="mb-10 flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-600 font-bold text-white shadow-md shadow-indigo-600/30">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-black font-bold text-white shadow-md shadow-indigo-600/30">
                 N
               </div>
               <div>
                 <p className="text-sm font-semibold text-white">Nylos</p>
-                <p className="text-[10px] text-slate-400">Helpdesk</p>
+                <p className="text-[20px] text-slate-800">Helpdesk</p>
               </div>
             </div>
 
             <nav className="space-y-1 text-sm">
-              <div className="flex items-center gap-2 rounded-lg bg-indigo-600 px-3 py-2.5 font-medium text-white">
+              <div className="flex items-center gap-2 rounded-lg  px-3 py-2.5 font-medium text-slate-500">
                 <LayoutDashboard size={16} />
-                Dashboard
+                Overview
               </div>
-              <div className="flex items-center gap-2 px-3 py-2.5 text-slate-400 hover:text-slate-200 transition cursor-pointer">
+              <div className="flex items-center gap-2 px-3 py-2.5 text-slate-500  transition ">
                 <Ticket size={16} />
                 Tickets
               </div>
-              <div className="flex items-center gap-2 px-3 py-2.5 text-slate-400 hover:text-slate-200 transition cursor-pointer">
-                <MessageSquare size={16} />
-                Comments
+              <div className="flex items-center gap-2 px-3 py-2.5 text-slate-500 transition ">
+                <Inbox size={16} />
+                My Work
               </div>
-              <div className="flex items-center gap-2 px-3 py-2.5 text-slate-400 hover:text-slate-200 transition cursor-pointer">
-                <Users size={16} />
-                Users
+              <div className="flex items-center gap-2 px-3 py-2.5 text-slate-500 transition">
+                <SquarePen size={16} />
+                Created By Me
               </div>
             </nav>
           </aside>
-
-          {/* Core Panel Content Space */}
           <div className="bg-slate-50 p-5 sm:p-8">
             <div className="mb-7 flex items-center justify-between">
               <div>
@@ -122,12 +117,10 @@ export default function DashboardPreview() {
                 </h3>
               </div>
 
-              <button className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-600/20 hover:bg-indigo-700 transition">
+              <button className="flex items-center gap-1.5 rounded-lg bg-black px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-600/20 transition">
                 <Plus size={16} /> New Ticket
               </button>
             </div>
-
-            {/* Quick Metrics Analytics Cards */}
             <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
               {[
                 ["Total Tickets", "128"],
@@ -147,19 +140,18 @@ export default function DashboardPreview() {
               ))}
             </div>
 
-            {/* Simulated Live Recent Tickets Table Feed */}
             <div className="mt-5 rounded-xl border border-slate-200 bg-white shadow-sm">
               <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
                 <h4 className="font-semibold text-slate-950">Recent Tickets</h4>
-                <span className="flex items-center gap-0.5 text-xs font-semibold text-indigo-600 hover:underline cursor-pointer">
+                <span className="flex items-center gap-0.5 text-xs font-semibold text-indigo-600 ">
                   View all <ChevronRight size={14} />
                 </span>
               </div>
 
               <div className="divide-y divide-slate-100">
-                {PREVIEW_TICKETS.map((ticket) => {
-                  const priorityMeta = PREVIEW_PRIORITY_MAP[ticket.priority];
-                  const statusMeta = PREVIEW_STATUS_MAP[ticket.status];
+                {PreviewTickets.map((ticket) => {
+                  const priorityMeta = PreviewPriorityMap[ticket.priority];
+                  const statusMeta = PreviewStatusMap[ticket.status];
 
                   const PriorityIcon = priorityMeta.icon;
                   const StatusIcon = statusMeta.icon;
