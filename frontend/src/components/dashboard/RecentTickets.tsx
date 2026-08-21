@@ -6,7 +6,7 @@ import {
   MoreHorizontal,
 } from "lucide-react";
 import { useNavigate } from "react-router";
-import { useTicketStats } from "../../hooks/useTicketsStats";
+import { useGetTickets } from "../../hooks/useTicketsQuery";
 import type { TicketPriority, TicketStatus } from "../../api/tickets/types";
 
 const getPriorityStyles = (priority: TicketPriority) => {
@@ -54,12 +54,12 @@ const getInitials = (name?: string | null) => {
 
 export default function RecentTickets() {
   const navigate = useNavigate();
-  const { tickets, isLoading } = useTicketStats({ page: 1, pageSize: 5 });
+  const { data, isLoading } = useGetTickets({ page: 1, pageSize: 5 });
+  const tickets = data?.items ?? [];
   const recentList = tickets.slice(0, 5);
 
   return (
     <section className="mt-6 overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
-      {/* Header */}
       <div className="flex flex-col gap-4 border-b border-slate-100 px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
         <div>
           <div className="flex items-center gap-2">
@@ -96,7 +96,6 @@ export default function RecentTickets() {
         </div>
       ) : (
         <>
-          {/* Desktop Table with table-fixed layout */}
           <div className="hidden overflow-x-auto md:block">
             <table className="w-full table-fixed">
               <thead>
@@ -137,11 +136,13 @@ export default function RecentTickets() {
                       key={ticket.id}
                       className="group transition-colors duration-150 hover:bg-slate-50/70"
                     >
-                      {/* Ticket Title with Custom Instant Tooltip */}
                       <td className="px-6 py-4">
                         <div className="relative group/tooltip max-w-full">
                           <button
                             type="button"
+                            onClick={() =>
+                              navigate(`/app/tickets/${ticket.id}`)
+                            }
                             className="w-full text-left cursor-pointer"
                           >
                             <span className="block text-[10px] font-bold tracking-wide text-slate-400">
@@ -152,8 +153,6 @@ export default function RecentTickets() {
                               {ticket.title}
                             </span>
                           </button>
-
-                          {/* Hover Tooltip Popup */}
 
                           <div className="pointer-events-none absolute left-0 bottom-full z-30 mb-2 hidden w-max max-w-xs rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-800 shadow-xl group-hover/tooltip:block">
                             {ticket.title}
@@ -203,6 +202,7 @@ export default function RecentTickets() {
                       <td className="px-4 py-4">
                         <button
                           type="button"
+                          onClick={() => navigate(`/app/tickets/${ticket.id}`)}
                           aria-label={`Open ${ticket.ticketNumber}`}
                           className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-300 opacity-0 transition-all group-hover:bg-white group-hover:text-slate-500 group-hover:opacity-100 cursor-pointer"
                         >
@@ -216,7 +216,6 @@ export default function RecentTickets() {
             </table>
           </div>
 
-          {/* Mobile List */}
           <div className="divide-y divide-slate-100 md:hidden">
             {recentList.map((ticket) => {
               const priorityClass = getPriorityStyles(ticket.priority);
@@ -232,6 +231,7 @@ export default function RecentTickets() {
                 <button
                   key={ticket.id}
                   type="button"
+                  onClick={() => navigate(`/app/tickets/${ticket.id}`)}
                   className="group flex w-full items-center gap-3 px-5 py-4 text-left transition-colors hover:bg-slate-50/70 cursor-pointer"
                 >
                   <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-50 text-slate-400 transition-colors group-hover:bg-indigo-50 group-hover:text-indigo-600">
@@ -249,13 +249,11 @@ export default function RecentTickets() {
                       </span>
                     </div>
 
-                    {/* Title with Instant White Tooltip */}
                     <div className="relative group/tooltip mt-1 max-w-full">
                       <p className="truncate text-sm font-semibold text-slate-800 group-hover:text-indigo-600">
                         {ticket.title}
                       </p>
 
-                      {/* White Mobile Tooltip Popup */}
                       <div className="pointer-events-none absolute left-0 bottom-full z-30 mb-2 hidden w-max max-w-[250px] rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-800 shadow-xl group-hover/tooltip:block">
                         {ticket.title}
                         <div className="absolute top-full left-4 -mt-1 border-4 border-transparent border-t-white" />
@@ -287,8 +285,6 @@ export default function RecentTickets() {
           </div>
         </>
       )}
-
-      {/* Footer Meta */}
       <div className="border-t border-slate-100 bg-slate-50/40 px-5 py-3.5 sm:px-6">
         <p className="text-[11px] font-medium text-slate-400">
           Showing the latest {recentList.length} ticket updates.

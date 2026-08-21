@@ -70,7 +70,6 @@ const getInitials = (name?: string | null) => {
 };
 
 export default function TicketTable({ tickets, isLoading }: TicketTableProps) {
-  // State management for actions
   const [selectedTicket, setSelectedTicket] = useState<TicketDto | null>(null);
   const [ticketToDelete, setTicketToDelete] = useState<TicketDto | null>(null);
   const [ticketToAssign, setTicketToAssign] = useState<TicketDto | null>(null);
@@ -78,13 +77,10 @@ export default function TicketTable({ tickets, isLoading }: TicketTableProps) {
 
   const menuRef = useRef<HTMLDivElement | null>(null);
 
-  // Queries & Mutations
   const { mutateAsync: deleteTicket, isPending: isDeleting } =
     useDeleteTicket();
   const { mutateAsync: assignTicket } = useAssignTicket();
   const { data: users = [], isLoading: isLoadingUsers } = useGetUsers();
-
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {

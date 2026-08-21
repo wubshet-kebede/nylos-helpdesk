@@ -130,7 +130,10 @@ export default function CreatedByMePage() {
               {isLoading ? (
                 <TicketListSkeleton />
               ) : tickets.length === 0 ? (
-                <EmptyWorkState />
+                <EmptyWorkState
+                  title="No tickets created yet"
+                  description="Tickets you report or submit will show up here so you can track their status."
+                />
               ) : (
                 tickets.map((ticket) => (
                   <TicketListItem

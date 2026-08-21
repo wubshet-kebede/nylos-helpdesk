@@ -51,3 +51,10 @@ export interface UpdateTicketRequest {
   description: string;
   priority: "Low" | "Medium" | "High" | "Urgent";
 }
+export interface TicketStatsDto {
+  totalCount: number;
+  open: number;
+  inProgress: number;
+  resolved: number;
+  closed: number;
+}

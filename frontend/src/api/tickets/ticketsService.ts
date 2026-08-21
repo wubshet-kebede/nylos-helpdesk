@@ -6,6 +6,7 @@ import type {
   AssignTicketRequest,
   PagedResponse,
   TicketFilters,
+  TicketStatsDto,
   UpdateTicketRequest,
 } from "./types";
 
@@ -21,7 +22,10 @@ export const ticketsService = {
     );
     return response.data;
   },
-
+  getTicketStats: async (): Promise<TicketStatsDto> => {
+    const response = await axiosClient.get<TicketStatsDto>("/tickets/stats");
+    return response.data;
+  },
   getTicketById: async (id: string): Promise<TicketDto> => {
     const response = await axiosClient.get<TicketDto>(`/tickets/${id}`);
     return response.data;

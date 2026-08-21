@@ -11,7 +11,7 @@ import { CommentFeed } from "../comments/CommentFeed";
 import type { TicketDto } from "../../api/tickets/types";
 import { useAuth } from "../../context/AuthContext";
 import { PriorityBadge, StatusBadge, STATUS_CONFIG } from "./TicketBadges";
-
+import { SectionLabel, DetailItem } from "./TicketDetailHelpers";
 function formatDate(date?: string | null) {
   if (!date) return "—";
 
@@ -21,27 +21,6 @@ function formatDate(date?: string | null) {
     year: "numeric",
   }).format(new Date(date));
 }
-
-function SectionLabel({ label }: { label: string }) {
-  return (
-    <h2 className="text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400">
-      {label}
-    </h2>
-  );
-}
-
-function DetailItem({ label, value }: { label: string; value: string }) {
-  return (
-    <div>
-      <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
-        {label}
-      </p>
-
-      <p className="mt-1 text-xs font-semibold text-slate-800">{value}</p>
-    </div>
-  );
-}
-
 interface TicketDetailsProps {
   ticket: TicketDto;
   onStatusChange: (status: "Resolved" | "Closed") => void;

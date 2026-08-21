@@ -8,8 +8,10 @@ import CreateTicketModal from "../../components/tickets/CreateTicketModal";
 import { useTicketStats } from "../../hooks/useTicketsStats";
 import { getGreeting } from "../../utils/getGreeting";
 import { useAuth } from "../../context/AuthContext";
+
 export default function DashboardPage() {
   const [isCreateTicketOpen, setIsCreateTicketOpen] = useState(false);
+
   const {
     totalCount,
     open,
@@ -18,9 +20,11 @@ export default function DashboardPage() {
     closed,
     isLoading: isStatsLoading,
   } = useTicketStats();
+
   const { user, isLoading: isAuthLoading } = useAuth();
   const greeting = getGreeting();
   const firstName = user?.fullName ? user.fullName.split(" ")[0] : "there";
+
   const DASHBOARD_STATS = [
     {
       label: "Total Tickets",
@@ -70,7 +74,7 @@ export default function DashboardPage() {
         {/* Page Header */}
         <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-xl font-bold  italic tracking-[0.16em] text-indigo-600">
+            <p className="text-xl font-bold italic tracking-[0.16em] text-indigo-600">
               Workspace overview
             </p>
 
@@ -97,8 +101,8 @@ export default function DashboardPage() {
           </button>
         </div>
 
-        {/* Statistics */}
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {/* Statistics Grid */}
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
           {DASHBOARD_STATS.map((stat) => (
             <StatCard key={stat.label} {...stat} />
           ))}

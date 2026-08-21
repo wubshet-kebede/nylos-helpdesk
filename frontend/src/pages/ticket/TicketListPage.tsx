@@ -5,6 +5,8 @@ import TicketTable from "../../components/tickets/TicketTable";
 import TicketPagination from "../../components/tickets/TicketPagination";
 import type { TicketFilters } from "../../api/tickets/types";
 import { useTicketStats } from "../../hooks/useTicketsStats";
+import { useGetTickets } from "../../hooks/useTicketsQuery";
+import { TICKET_STATUS_COLUMNS } from "../../constants/ticketStatus";
 
 export default function TicketListPage() {
   const [filters, setFilters] = useState<TicketFilters>({
@@ -14,8 +16,20 @@ export default function TicketListPage() {
 
   const [viewMode, setViewMode] = useState<"list" | "board">("list");
 
-  const { tickets, totalCount, open, inProgress, resolved, closed, isLoading } =
-    useTicketStats(filters);
+  // Hook 1: Fetch total system-wide stats from /api/v1/tickets/stats
+  const {
+    totalCount: statsTotal,
+    open,
+    inProgress,
+    resolved,
+    closed,
+  } = useTicketStats();
+
+  // Hook 2: Fetch paginated & filtered list for table/kanban view
+  const { data: ticketsData, isLoading } = useGetTickets(filters);
+
+  const tickets = ticketsData?.items || [];
+  const totalCount = ticketsData?.totalCount || statsTotal || 0;
 
   return (
     <div className="min-w-0">
@@ -48,10 +62,10 @@ export default function TicketListPage() {
           </button>
         </div>
 
-        {/* Ticket Meta */}
+        {/* Ticket Meta Header with Global SQL Aggregations */}
         <div className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs">
           <span className="font-semibold text-slate-700">
-            {totalCount} tickets
+            {statsTotal} total tickets
           </span>
           <span className="text-slate-400">{open} open</span>
           <span className="text-slate-400">{inProgress} in progress</span>
@@ -73,62 +87,45 @@ export default function TicketListPage() {
             <TicketTable tickets={tickets} isLoading={isLoading} />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              {[
-                {
-                  label: "Open",
-                  key: "Open",
-                  count: open,
-                  color: "bg-blue-500",
-                },
-                {
-                  label: "In Progress",
-                  key: "InProgress",
-                  count: inProgress,
-                  color: "bg-amber-500",
-                },
-                {
-                  label: "Resolved",
-                  key: "Resolved",
-                  count: resolved,
-                  color: "bg-emerald-500",
-                },
-                {
-                  label: "Closed",
-                  key: "Closed",
-                  count: closed,
-                  color: "bg-slate-400",
-                },
-              ].map((column) => (
-                <div
-                  key={column.key}
-                  className="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-3"
-                >
-                  <div className="flex items-center justify-between pb-3 px-1">
-                    <div className="flex items-center gap-2">
-                      <span
-                        className={`h-2 w-2 rounded-full ${column.color}`}
-                      />
-                      <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                        {column.label}
-                      </h3>
-                    </div>
-                    <span className="rounded-full bg-white px-2 py-0.5 text-[10px] font-bold text-slate-500 border border-slate-200">
-                      {column.count}
-                    </span>
-                  </div>
+              {TICKET_STATUS_COLUMNS.map((column) => {
+                const columnTickets = tickets.filter(
+                  (t) => t.status === column.key,
+                );
+                const count = columnTickets.length;
 
-                  <div className="space-y-2 max-h-[600px] overflow-y-auto">
-                    {isLoading ? (
-                      <div className="p-4 text-center text-xs text-slate-400">
-                        Loading...
+                return (
+                  <div
+                    key={column.key}
+                    className="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-3"
+                  >
+                    <div className="flex items-center justify-between pb-3 px-1">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`h-2 w-2 rounded-full ${column.color}`}
+                        />
+                        <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                          {column.label}
+                        </h3>
                       </div>
-                    ) : (
-                      tickets
-                        .filter((t) => t.status === column.key)
-                        .map((ticket) => (
+                      <span className="rounded-full bg-white px-2 py-0.5 text-[10px] font-bold text-slate-500 border border-slate-200">
+                        {count}
+                      </span>
+                    </div>
+
+                    <div className="space-y-2 max-h-[600px] overflow-y-auto">
+                      {isLoading ? (
+                        <div className="p-4 text-center text-xs text-slate-400">
+                          Loading...
+                        </div>
+                      ) : columnTickets.length === 0 ? (
+                        <div className="p-4 text-center text-[11px] text-slate-400 italic">
+                          No {column.label.toLowerCase()} tickets
+                        </div>
+                      ) : (
+                        columnTickets.map((ticket) => (
                           <div
                             key={ticket.id}
-                            className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm hover:border-indigo-200 transition-colors"
+                            className="rounded-xl border border-slate-200 bg-white p-3 shadow-xs hover:border-indigo-200 transition-colors"
                           >
                             <span className="text-[10px] font-bold text-indigo-600">
                               #{ticket.ticketNumber}
@@ -143,13 +140,15 @@ export default function TicketListPage() {
                             </div>
                           </div>
                         ))
-                    )}
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
+
         {viewMode === "list" && (
           <div className="mt-3 rounded-2xl border border-slate-200/80 bg-white shadow-sm">
             <TicketPagination
