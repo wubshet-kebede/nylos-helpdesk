@@ -59,13 +59,13 @@ Nylos Helpdesk provides a centralized workspace where team members can create an
 
 > **Security note:** Authentication cookies use the `HttpOnly` flag, so they cannot be accessed through JavaScript or `document.cookie`. For cross-origin frontend/API requests, `withCredentials: true` instructs the browser to include cookies. The backend must also allow credentials through its CORS policy and use an explicit allowed origin rather than `*`. [278][279][280]
 ```ts
-const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL,
+const axiosClient = axios.create({
+  baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:5231/api/v1",
   headers: {
     "Content-Type": "application/json",
   },
   withCredentials: true,
-  timeout: 10_000,
+  timeout: 10000,
 });
 ```
 
