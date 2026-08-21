@@ -7,7 +7,7 @@ import {
   UserRound,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-
+import { CommentFeed } from "../comments/CommentFeed";
 import type { TicketDto } from "../../api/tickets/types";
 import { useAuth } from "../../context/AuthContext";
 import { PriorityBadge, StatusBadge, STATUS_CONFIG } from "./TicketBadges";
@@ -62,7 +62,7 @@ export function TicketDetails({
 
   const canResolve = isAssignee && ticket.status === "InProgress";
   const canClose = isCreator && ticket.status === "Resolved";
-
+  console.log("here is the assinee name ", ticket);
   return (
     <div className="flex min-h-full flex-col">
       {/* Header */}
@@ -187,6 +187,10 @@ export function TicketDetails({
                 </p>
               </div>
             </div>
+          </div>
+          {/* Activity & Comments Feed */}
+          <div className="mt-10 border-t border-slate-100 pt-6">
+            <CommentFeed ticketId={ticket.id} />
           </div>
         </div>
       </div>
