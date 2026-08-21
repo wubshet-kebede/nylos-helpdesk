@@ -6,7 +6,7 @@ public class User
     public string Email { get; private set; } = string.Empty;
     public string FullName { get; private set; } = string.Empty;
     public string PasswordHash { get; private set; } = string.Empty;
-   public UserRole UserRole { get; private set; } = UserRole.Customer;
+    public UserRole UserRole { get; private set; } = UserRole.Customer;
     public DateTime CreatedAt { get; private set; }
 
     private User() { } // EF Core constructor
@@ -19,7 +19,7 @@ public class User
             throw new ArgumentException("Full name is required.", nameof(fullName));
         if (string.IsNullOrWhiteSpace(passwordHash))
             throw new ArgumentException("Password  is required.", nameof(passwordHash));
-          if (!Enum.IsDefined(userRole))
+        if (!Enum.IsDefined(userRole))
             throw new ArgumentException(
                 "Invalid user role.",
                 nameof(userRole));

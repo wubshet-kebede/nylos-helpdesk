@@ -35,6 +35,6 @@ internal sealed class UserConfiguration : IEntityTypeConfiguration<User>
             .HasColumnName("CreatedAt");
 
         builder.HasIndex(u => u.Email)
-            .IsUnique();    
+            .IsUnique();
     }
 }

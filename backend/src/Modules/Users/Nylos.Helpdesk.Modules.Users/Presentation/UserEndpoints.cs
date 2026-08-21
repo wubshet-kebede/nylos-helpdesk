@@ -64,28 +64,26 @@ public static class UserEndpoints
         });
 
         authGroup.MapGet("/me", async (
-            ClaimsPrincipal userClaims,
-            ISender sender,
-            CancellationToken ct) =>
-        {
-            var userIdClaim = userClaims.FindFirstValue(ClaimTypes.NameIdentifier)
-                           ?? userClaims.FindFirstValue("sub");
+    ClaimsPrincipal userClaims,
+    ISender sender,
+    CancellationToken ct) =>
+{
+    var userId = userClaims.GetUserId();
+    if (userId is null)
+    {
+        return Results.Unauthorized();
+    }
 
-            if (!Guid.TryParse(userIdClaim, out var userId))
-            {
-                return Results.Unauthorized();
-            }
+    var query = new GetCurrentUserQuery(userId.Value);
+    var currentUser = await sender.Send(query, ct);
 
-            var query = new GetCurrentUserQuery(userId);
-            var currentUser = await sender.Send(query, ct);
-
-            return Results.Ok(currentUser);
-        })
-        .WithName("GetCurrentUser")
-        .RequireAuthorization()
-        .Produces<CurrentUserDto>(StatusCodes.Status200OK)
-        .ProducesProblem(StatusCodes.Status401Unauthorized)
-        .ProducesProblem(StatusCodes.Status404NotFound);
+    return Results.Ok(currentUser);
+})
+.WithName("GetCurrentUser")
+.RequireAuthorization()
+.Produces<CurrentUserDto>(StatusCodes.Status200OK)
+.ProducesProblem(StatusCodes.Status401Unauthorized)
+.ProducesProblem(StatusCodes.Status404NotFound);
 
 
         // Users Workspace Group (/api/v1/users)

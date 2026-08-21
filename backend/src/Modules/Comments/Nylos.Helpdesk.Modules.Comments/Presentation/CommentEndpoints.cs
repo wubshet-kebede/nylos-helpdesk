@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Nylos.Helpdesk.Modules.Comments.Application.Commands.CreateComment;
 using Nylos.Helpdesk.Modules.Comments.Application.Queries;
+using Nylos.Helpdesk.Shared.Infrastructure.Authentication;
 
 namespace Nylos.Helpdesk.Modules.Comments.Presentation;
 
@@ -18,7 +19,7 @@ public static class CommentsEndpoints
             .WithTags("Comments")
             .RequireAuthorization();
 
-        //Fetch all comments for a specific ticket
+        // Fetch all comments for a specific ticket
         group.MapGet("", async (
             Guid ticketId,
             ISender sender,
@@ -29,33 +30,39 @@ public static class CommentsEndpoints
             return Results.Ok(result);
         })
         .WithName("GetTicketComments")
-        .Produces(StatusCodes.Status200OK);
+        .Produces(StatusCodes.Status200OK)
+        .ProducesProblem(StatusCodes.Status401Unauthorized)
+        .ProducesProblem(StatusCodes.Status404NotFound);
 
         // Add a new comment to a ticket
         group.MapPost("/", async (
-    Guid ticketId,
-    CreateCommentRequest request,
-    ClaimsPrincipal user,
-    ISender sender,
-    CancellationToken ct) =>
-{
-    var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
-        ?? user.FindFirst("sub")?.Value;
+            Guid ticketId,
+            CreateCommentRequest request,
+            ClaimsPrincipal user,
+            ISender sender,
+            CancellationToken ct) =>
+        {
+            var authorId = user.GetUserId();
+            if (authorId is null)
+            {
+                return Results.Unauthorized();
+            }
 
-    if (!Guid.TryParse(userIdClaim, out var authorId))
-    {
-        return Results.Unauthorized();
-    }
+            var command = new CreateCommentCommand(
+                ticketId,
+                authorId.Value,
+                request.Content,
+                request.IsInternal
+            );
 
-    var command = new CreateCommentCommand(
-        ticketId,
-        authorId,
-        request.Content,
-        request.IsInternal
-    );
-    var commentId = await sender.Send(command, ct);
+            var commentId = await sender.Send(command, ct);
 
-    return Results.Created($"/api/v1/tickets/{ticketId}/comments/{commentId}", new { id = commentId });
-});
+            return Results.Created($"/api/v1/tickets/{ticketId}/comments/{commentId}", new { id = commentId });
+        })
+        .WithName("CreateTicketComment")
+        .Produces<object>(StatusCodes.Status201Created)
+        .ProducesProblem(StatusCodes.Status400BadRequest)
+        .ProducesProblem(StatusCodes.Status401Unauthorized)
+        .ProducesProblem(StatusCodes.Status404NotFound);
     }
 }
