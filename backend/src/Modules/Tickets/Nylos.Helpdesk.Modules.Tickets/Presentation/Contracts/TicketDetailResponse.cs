@@ -7,6 +7,7 @@ public record TicketDetailsDto(
     string TicketNumber,
     string Title,
     string Description,
+    string AssigneeName,
     TicketStatus Status,
     TicketPriority Priority,
     Guid CustomerId,
