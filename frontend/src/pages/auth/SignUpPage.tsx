@@ -607,7 +607,7 @@ export default function RegisterPage() {
 
             <Input
               id="email"
-              label="Work Email Address"
+              label="Email "
               type="email"
               placeholder="alex@company.com"
               icon={Mail}
@@ -617,7 +617,7 @@ export default function RegisterPage() {
 
             <Input
               id="password"
-              label="Security Password"
+              label="Password"
               type="password"
               placeholder="••••••••"
               icon={Lock}
