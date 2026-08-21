@@ -60,6 +60,23 @@ internal sealed class GetTicketsQueryHandler
                 t.TicketNumber.ToLower().Contains(searchTerm));
         }
 
+
+        bool isDescending = string.Equals(request.SortOrder, "desc", StringComparison.OrdinalIgnoreCase);
+        query = request.SortBy?.ToLower() switch
+        {
+            "updatedat" => isDescending
+                ? query.OrderByDescending(t => t.UpdatedAt)
+                : query.OrderBy(t => t.UpdatedAt),
+
+            "priority" => isDescending
+                ? query.OrderByDescending(t => t.Priority)
+                : query.OrderBy(t => t.Priority),
+
+            _ => isDescending
+                ? query.OrderByDescending(t => t.CreatedAt)
+                : query.OrderBy(t => t.CreatedAt)
+        };
+
         var totalCount = await query.CountAsync(cancellationToken);
 
         var page = request.Page < 1 ? 1 : request.Page;
@@ -70,7 +87,6 @@ internal sealed class GetTicketsQueryHandler
             _ => request.PageSize
         };
         var rawTickets = await query
-            .OrderByDescending(t => t.CreatedAt)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .Select(t => new
@@ -86,10 +102,13 @@ internal sealed class GetTicketsQueryHandler
                 t.CreatedAt
             })
             .ToListAsync(cancellationToken);
+
         var assigneeIds = rawTickets
             .Where(t => t.AssigneeId.HasValue)
             .Select(t => t.AssigneeId!.Value);
+
         var userMap = await _userContract.GetUsersByIdsAsync(assigneeIds, cancellationToken);
+
         var items = rawTickets.Select(t => new TicketSummaryDto(
             t.Id,
             t.TicketNumber,

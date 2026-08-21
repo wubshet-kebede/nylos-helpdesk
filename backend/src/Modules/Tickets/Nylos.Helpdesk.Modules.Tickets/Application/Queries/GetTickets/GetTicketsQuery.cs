@@ -8,7 +8,10 @@ public record GetTicketsQuery(
     TicketPriority? Priority = null,
     Guid? AssigneeId = null,
     Guid? CreatedById = null,
+
     string? Search = null,
+    string? SortBy = "createdAt",
+    string? SortOrder = "desc",
     int Page = 1,
     int PageSize = 10
 ) : IRequest<PagedResult<TicketSummaryDto>>;
