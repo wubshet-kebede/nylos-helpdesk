@@ -646,23 +646,9 @@ To deliver a complete, maintainable application within assessment time box, the 
 
 ## Design decisions and trade-offs
 
-### Modular monolith
+The project uses a modular monolith with separate `Users`, `Tickets`, and `Comments` modules. Each module owns its domain logic, EF Core `DbContext`, PostgreSQL schema, and migrations, while the application remains a single ASP.NET Core deployment backed by one PostgreSQL database.
 
-The backend is a modular monolith rather than a microservices system. Tickets, Comments, and Users have explicit internal boundaries, but they run in one ASP.NET Core host. This keeps deployment and local development simple while preserving a structure that can evolve as the application grows.
-
-### Separate DbContext per module
-
-Each module owns its EF Core `DbContext`, migrations, and PostgreSQL schema. Cross-module relationships are represented by IDs and validated through module contracts rather than direct access to another module's database context.
-
-### Server-side workflow validation
-
-Ticket status transitions are enforced in the backend domain logic instead of relying on the React frontend. This prevents clients from bypassing the workflow rules.
-
-
-### Single PostgreSQL database
-
-All module contexts connect to one PostgreSQL database for simpler local development. The modules still own separate schemas and migrations. Separate databases could be introduced later if independent scaling or deployment becomes necessary.
-
+For the full explanation of architectural choices, validation strategy, authentication approach, frontend data-fetching approach, and intentionally de-prioritized features, see [TRADEOFFS.md](TRADEOFFS.md).
 ## License
 
 This repository was created for the Nylos Junior Software Developer technical assessment.
