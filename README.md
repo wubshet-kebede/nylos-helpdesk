@@ -186,6 +186,16 @@ When the API starts, it automatically creates the default administrator account 
 | Password | `Admin@123456`    |
 
 > This account is intended for local development and assessment testing only.
+### Default ticket data
+
+When the API starts, it also automatically initializes the default ticket data if the tickets have not already been seeded.
+
+The ticket initialization is deterministic and idempotent, meaning:
+
+- The same default tickets are created consistently on startup.
+- Existing tickets are not duplicated.
+- Restarting the API does not create duplicate ticket records.
+- The seed data is intended for local development and assessment testing.
 
 ## Technology Stack
 
