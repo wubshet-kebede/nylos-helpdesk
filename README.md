@@ -8,10 +8,83 @@ Nylos Helpdesk provides a centralized workspace where team members can create an
 
 ### 🔐 Authentication & Security
 
-- **JWT Authentication:** Secure user authentication using short-lived access tokens and HTTP-only refresh tokens.
-- **Role & User Context:** Protected API endpoints with server-side token verification and identity context resolution.
-- **Client-Side Validation:** Login and form validation with clear user-facing error messages.
-- **Responsive Authentication UI:** Modern, responsive split-screen login and signup pages enhanced with Framer Motion animations and client-side form validation.
+- **JWT authentication:** Secure authentication using short-lived access-token cookies and long-lived HTTP-only refresh-token cookies.
+
+- **Role and user context:** Protected API endpoints validate the authentication token server-side and resolve the authenticated user's identity and role.
+
+- **Client-side validation:** Login, signup, and application forms provide clear validation feedback through client-side validation.
+
+- **Responsive authentication UI:** Modern responsive split-screen login and signup pages use Framer Motion animations, `react-hook-form`, and Zod validation.
+
+#### Cookie-based session management
+
+The application uses cookie-based JWT authentication. Authentication cookies are managed by the browser, so the frontend does not manually read, store, or attach tokens.
+
+After successful authentication, the backend issues:
+
+- A short-lived access-token cookie for authenticated API requests.
+- A longer-lived refresh-token cookie for renewing an expired session.
+
+Both cookies use the `HttpOnly` flag, preventing JavaScript from accessing them through `document.cookie`. The refresh-token cookie is restricted to the authentication route:
+
+```text
+/api/v1/auth
+```
+
+This limits when the browser sends the refresh token and reduces unnecessary exposure to other API endpoints.
+
+#### Silent session renewal
+
+The shared Axios client is configured to include browser cookies with API requests:
+
+```ts
+const apiClient = axios.create({
+  baseURL: import.meta.env.VITE_API_BASE_URL,
+  headers: {
+    "Content-Type": "application/json",
+  },
+  withCredentials: true,
+  timeout: 10_000,
+});
+```
+
+When an access token expires, the API returns `401 Unauthorized`. The Axios response interceptor then:
+
+1. Detects the unauthorized response.
+2. Calls the refresh endpoint.
+3. Allows the browser to include the HTTP-only refresh-token cookie automatically.
+4. Receives newly issued authentication cookies from the backend.
+5. Retries the original failed request.
+6. Clears the application session and redirects the user to login if refresh fails.
+
+```mermaid
+sequenceDiagram
+    participant UI as React Frontend
+    participant AX as Axios Client
+    participant API as ASP.NET Core API
+
+    UI->>AX: Request protected resource
+    AX->>API: Request with cookie credentials
+    API-->>AX: 401 Unauthorized
+
+    AX->>API: POST /api/v1/auth/refresh
+    Note over AX,API: Browser includes refresh-token cookie
+    API-->>AX: Updated authentication cookies
+
+    AX->>API: Retry original request
+    API-->>AX: Successful response
+    AX-->>UI: Return requested data
+```
+
+#### Cookie security
+
+- **HTTP-only cookies:** JavaScript cannot access authentication-cookie values, reducing the impact of XSS token theft.
+- **Secure cookies:** In production, cookies are sent only over HTTPS connections.
+- **SameSite policy:** Cookie transmission is restricted using an appropriate `SameSite` policy.
+- **Credentialed requests:** Axios uses `withCredentials: true`, and the backend CORS policy explicitly permits credentials from the trusted frontend origin.
+- **Refresh-token rotation:** Refresh tokens expire, can be revoked, and are replaced after successful renewal.
+
+> Cookie-based authentication requires CSRF protections in a production deployment, particularly if cookies are configured with `SameSite=None`. [323][325][329]
 
 ### 🎟️ Ticket & Workflow Management
 
