@@ -141,6 +141,7 @@ The database schema is managed through Entity Framework Core migrations.
 
 Run this command after changing an entity, EF Core configuration, relationship, column, enum mapping, or seed-data configuration:
 
+### F0r Users
 ```bash
 dotnet ef migrations add StoreUserRoleAsString \
   --project src/Modules/Users/Nylos.Helpdesk.Modules.Users \
@@ -148,7 +149,22 @@ dotnet ef migrations add StoreUserRoleAsString \
   --context UsersDbContext \
   --output-dir Infrastructure/Persistence/Migrations
 ```
-
+### For Tickets
+```bash
+dotnet ef migrations add somethignudidintickets \
+  --project src/Modules/Tickets/Nylos.Helpdesk.Modules.Tickets \
+  --startup-project src/Host/Nylos.Helpdesk.Api \
+  --context TicketsDbContext \
+  --output-dir Infrastructure/Persistence/Migrations
+```
+### For Comments
+```bash
+dotnet ef migrations add SomethingUdidinTickets \
+  --project src/Modules/Tickets/Nylos.Helpdesk.Modules.Tickets \
+  --startup-project src/Host/Nylos.Helpdesk.Api \
+  --context TicketsDbContext \
+  --output-dir Infrastructure/Persistence/Migrations
+```
 ### Apply migrations
 
 Run this command to create or update the PostgreSQL database to the latest migration:
