@@ -84,7 +84,7 @@ sequenceDiagram
 - **Credentialed requests:** Axios uses `withCredentials: true`, and the backend CORS policy explicitly permits credentials from the trusted frontend origin.
 - **Refresh-token rotation:** Refresh tokens expire, can be revoked, and are replaced after successful renewal.
 
-> Cookie-based authentication requires CSRF protections in a production deployment, particularly if cookies are configured with `SameSite=None`. [323][325][329]
+> Cookie-based authentication requires CSRF protections in a production deployment, particularly if cookies are configured with `SameSite=None`.
 
 ### 🎟️ Ticket & Workflow Management
 
@@ -135,7 +135,7 @@ sequenceDiagram
 
 - **Centralized error handling:** The shared Axios client provides consistent handling for API failures, allowing pages and components to display predictable validation and error feedback.
 
-> **Security note:** Authentication cookies use the `HttpOnly` flag, so they cannot be accessed through JavaScript or `document.cookie`. For cross-origin frontend/API requests, `withCredentials: true` instructs the browser to include cookies. The backend must also allow credentials through its CORS policy and use an explicit allowed origin rather than `*`. [278][279][280]
+> **Security note:** Authentication cookies use the `HttpOnly` flag, so they cannot be accessed through JavaScript or `document.cookie`. For cross-origin frontend/API requests, `withCredentials: true` instructs the browser to include cookies. The backend must also allow credentials through its CORS policy and use an explicit allowed origin rather than `*`.
 
 ```ts
 const axiosClient = axios.create({
