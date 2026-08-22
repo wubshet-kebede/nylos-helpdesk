@@ -5,6 +5,7 @@ import {
   Inbox,
   Settings,
   ChevronRight,
+  SquarePen,
   LogOut,
 } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
@@ -31,6 +32,11 @@ const NAVIGATION = [
     label: "My Work",
     to: "/app/my-work",
     icon: Inbox,
+  },
+  {
+    label: "Created By Me",
+    to: "/app/created-by-me",
+    icon: SquarePen,
   },
 ] as const;
 

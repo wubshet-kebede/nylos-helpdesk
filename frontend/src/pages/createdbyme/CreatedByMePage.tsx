@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { MoreHorizontal } from "lucide-react";
+import { MoreHorizontal, ArrowLeft } from "lucide-react";
 
 import { useAuth } from "../../context/AuthContext";
 import {
@@ -23,12 +23,13 @@ import {
 export default function CreatedByMePage() {
   const { user } = useAuth();
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
+  const [isMobileDetailOpen, setIsMobileDetailOpen] = useState(false);
 
   const filters = useMemo(
     () => ({
       page: 1,
       pageSize: 50,
-      createdById: user?.id, // Fetch tickets created by logged-in user
+      createdById: user?.id,
     }),
     [user?.id],
   );
@@ -63,15 +64,19 @@ export default function CreatedByMePage() {
     await updateStatus({ id: selectedTicket.id, newStatus: status });
   };
 
+  const handleTicketSelect = (id: string) => {
+    setSelectedTicketId(id);
+    setIsMobileDetailOpen(true);
+  };
+
   return (
     <div className="min-h-full bg-[#fafafa]">
-      {/* Page header */}
       <div className="border-b border-slate-200/80 bg-white">
-        <div className="px-5 py-6 sm:px-7 lg:px-8">
-          <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
+        <div className="px-4 py-5 sm:px-7 sm:py-6 lg:px-8">
+          <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-xl font-semibold tracking-tight text-slate-950">
+                <h1 className="text-lg sm:text-xl font-semibold tracking-tight text-slate-950">
                   Created by Me
                 </h1>
 
@@ -85,7 +90,7 @@ export default function CreatedByMePage() {
               </p>
             </div>
 
-            <div className="flex items-center gap-5">
+            <div className="flex items-center gap-4 sm:gap-5">
               <HeaderMetric
                 label="Active"
                 value={isLoading ? "—" : activeCount}
@@ -102,11 +107,13 @@ export default function CreatedByMePage() {
         </div>
       </div>
 
-      {/* Main workspace */}
-      <div className="p-4 sm:p-5 lg:p-6">
-        <div className="grid min-h-[620px] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm lg:grid-cols-[330px_minmax(0,1fr)]">
-          {/* LEFT: ticket navigator */}
-          <aside className="border-b border-slate-200 lg:border-b-0 lg:border-r">
+      <div className="p-3 sm:p-5 lg:p-6">
+        <div className="grid min-h-[500px] lg:min-h-[620px] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm lg:grid-cols-[330px_minmax(0,1fr)]">
+          <aside
+            className={`border-slate-200 lg:border-r ${
+              isMobileDetailOpen ? "hidden lg:block" : "block"
+            }`}
+          >
             <div className="flex h-14 items-center justify-between border-b border-slate-100 px-4">
               <div className="flex items-center gap-2">
                 <h2 className="text-xs font-bold text-slate-800">
@@ -126,7 +133,7 @@ export default function CreatedByMePage() {
               </button>
             </div>
 
-            <div className="max-h-[620px] overflow-y-auto">
+            <div className="max-h-[calc(100vh-220px)] lg:max-h-[620px] overflow-y-auto">
               {isLoading ? (
                 <TicketListSkeleton />
               ) : tickets.length === 0 ? (
@@ -140,15 +147,29 @@ export default function CreatedByMePage() {
                     key={ticket.id}
                     ticket={ticket}
                     selected={ticket.id === selectedTicket?.id}
-                    onClick={() => setSelectedTicketId(ticket.id)}
+                    onClick={() => handleTicketSelect(ticket.id)}
                   />
                 ))
               )}
             </div>
           </aside>
 
-          {/* RIGHT: selected ticket */}
-          <main className="min-w-0 bg-white">
+          <main
+            className={`min-w-0 bg-white ${
+              !isMobileDetailOpen ? "hidden lg:block" : "block"
+            }`}
+          >
+            <div className="block lg:hidden border-b border-slate-100 px-4 py-3 bg-slate-50/50">
+              <button
+                type="button"
+                onClick={() => setIsMobileDetailOpen(false)}
+                className="inline-flex items-center gap-2 text-xs font-semibold text-slate-600 transition hover:text-slate-900 cursor-pointer"
+              >
+                <ArrowLeft size={16} />
+                Back to ticket list
+              </button>
+            </div>
+
             {isLoading ? (
               <TicketDetailsSkeleton />
             ) : selectedTicket ? (
