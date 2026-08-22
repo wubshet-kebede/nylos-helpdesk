@@ -8,6 +8,7 @@ namespace Nylos.Helpdesk.Modules.Users.Infrastructure.Persistence;
 
 public static class UsersDbInitializer
 {
+    public static readonly Guid SeedAdminId = Guid.Parse("11111111-1111-1111-1111-111111111111");
     public static async Task SeedAsync(IServiceProvider serviceProvider)
     {
         using var scope = serviceProvider.CreateScope();
@@ -36,7 +37,7 @@ public static class UsersDbInitializer
             if (!hasAdmin)
             {
                 var adminUser = new User(
-                    Guid.NewGuid(),
+                    SeedAdminId,
                     "admin@nylos.com",
                     "Wubshet Ayellew",
                     passwordHasher.HashPassword("Admin@123456"),

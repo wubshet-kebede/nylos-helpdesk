@@ -12,6 +12,7 @@ using Nylos.Helpdesk.Modules.Users;
 using FluentValidation;
 using Nylos.Helpdesk.Modules.Comments;
 using Nylos.Helpdesk.Modules.Users.Infrastructure.Persistence;
+using Nylos.Helpdesk.Modules.Tickets.Infrastructure.Persistence;
 using Nylos.Helpdesk.Modules.Users.Presentation;
 using Nylos.Helpdesk.Modules.Comments.Presentation;
 using Nylos.Helpdesk.Shared.Infrastructure;
@@ -93,6 +94,8 @@ var app = builder.Build();
 
 // Seed Default Admin User
 await UsersDbInitializer.SeedAsync(app.Services);
+/// seed default ticekt 
+await TicketsDbInitializer.SeedAsync(app.Services);
 app.UseCors(CorsPolicyName);
 //
 // Automatically route unhandled exceptions into ProblemDetails format
