@@ -1,6 +1,6 @@
 # Technical Decisions and Trade-offs
 
-This project was implemented as a time-boxed technical assessment. The focus was to deliver a complete ticket-management workflow with clear boundaries, reliable validation, secure authentication, and a polished user experience.
+This project was implemented as a time-boxed technical assessment. The focus was to deliver the required ticket-management workflow with clear boundaries, reliable validation, cookie-based JWT authentication with refresh-token rotation, and a polished user experience.
 
 ## 1. Architecture: Modular monolith
 
@@ -34,11 +34,10 @@ This requires additional EF Core configuration, including `HasDefaultSchema(...)
 
 The added setup was accepted because it creates a more realistic modular design while retaining one PostgreSQL database and one Docker Compose setup for easy local development.
 
-## 3. Authentication: Custom JWT and refresh tokens
+## 3. Authentication: Cookie-based JWT and refresh tokens
 
 **Decision:**  
-Authentication uses custom JWT access tokens with HTTP-only refresh tokens. Refresh-token records are persisted in the `users.refresh_tokens` table to support expiration, revocation, and token rotation.
-
+Authentication uses short-lived JWT access-token cookies and longer-lived HTTP-only refresh-token cookies. Refresh-token records are persisted in the `users.refresh_tokens` table to support expiration, revocation, and token rotation.
 **Why:**  
 A custom implementation keeps the authentication model focused on the requirements of the application. It also ensures that ticket creators are derived from the authenticated user session rather than being trusted from client-provided input.
 
@@ -91,15 +90,27 @@ SignalR or WebSockets would allow real-time push updates when another user adds 
 
 Real-time communication was intentionally de-prioritized because it would add socket lifecycle management, connection-state handling, and additional testing complexity beyond the assessment scope.
 
+## Production security considerations
+
+The application implements cookie-based JWT authentication with HTTP-only access and refresh cookies, refresh-token expiry, revocation, rotation, explicit cookie-path scoping, server-side identity resolution, role-based endpoint protection, and credentialed CORS configuration.
+
+For local development, authentication cookies use `Secure = false` because the API runs over HTTP on `localhost`. In a production HTTPS deployment, cookies must use `Secure = true`.
+
+The following production-hardening measures were intentionally not implemented within the assessment time box:
+
+- **Rate limiting:** Login, registration, and refresh endpoints should be rate-limited to reduce brute-force and abuse risks.
+- **Account lockout:** Repeated failed login attempts should trigger a temporary account lockout or progressive delay.
+- **Automated security testing:** Unit and integration tests should verify authentication, authorization, refresh-token rotation, revocation, and unauthorized-access behavior.
+
+These items were de-prioritized to focus on delivering the required ticket-management workflow, authentication flow, database migrations, and frontend experience within the assessment scope.
+
 ## Future improvements
 
-If the application were extended beyond the assessment, the next improvements would include:
+If the application were extended beyond the assessment, the next priorities would be:
 
-1. SignalR notifications for ticket changes and new comments.
-2. Email notifications for assignment, status changes, and comment activity.
-3. File attachments for tickets and comments.
-4. Audit history for ticket updates and status changes.
-5. Role-based authorization policies with more granular permissions.
-6. Password reset, email verification, account lockout, and multi-factor authentication.
-7. Full-text search, saved filters, ticket tags, and reporting dashboards.
-8. CI/CD automation for build validation, tests, linting, and migration checks.
+1. SignalR notifications for ticket updates and new comments.
+2. Email notifications and file attachments.
+3. Audit history for ticket updates and status changes.
+4. More granular role-based authorization policies.
+5. Password reset, email verification, account lockout, and multi-factor authentication.
+6. CI/CD automation for build validation, tests, linting, and migration checks.
