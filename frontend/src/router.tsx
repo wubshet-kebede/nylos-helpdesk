@@ -1,4 +1,5 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Outlet } from "react-router-dom";
+import { AuthProvider } from "./context/AuthContext";
 import DefaultLayout from "./layouts/DefaultLayout";
 import HomePage from "./pages/LandingPage";
 import LoginPage from "./pages/auth/LoginPage";
@@ -10,48 +11,63 @@ import ProtectedRoute from "./components/common/ProtectedRoute";
 import MyWorkPage from "./pages/mywork/MyWorkPage";
 import CreatedByMePage from "./pages/createdbyme/CreatedByMePage";
 import TicketDetailPage from "./pages/ticket/TicketDetailPage";
+
+// Root wrapper element to guarantee AuthProvider surrounds all routes
+function RootLayout() {
+  return (
+    <AuthProvider>
+      <Outlet />
+    </AuthProvider>
+  );
+}
+
 export const router = createBrowserRouter([
   {
-    element: <DefaultLayout />,
+    element: <RootLayout />,
     children: [
       {
-        path: "/",
-        element: <HomePage />,
-      },
-    ],
-  },
-  {
-    path: "/login",
-    element: <LoginPage />,
-  },
-  {
-    path: "/register",
-    element: <SignUpPage />,
-  },
-  {
-    element: <ProtectedRoute />,
-    children: [
-      {
-        path: "app",
-        element: <WorkspaceLayout />,
+        element: <DefaultLayout />,
         children: [
           {
-            path: "dashboard",
-            element: <DashboardPage />,
+            path: "/",
+            element: <HomePage />,
           },
+        ],
+      },
+      {
+        path: "/login",
+        element: <LoginPage />,
+      },
+      {
+        path: "/register",
+        element: <SignUpPage />,
+      },
+      {
+        element: <ProtectedRoute />,
+        children: [
           {
-            path: "tickets",
-            element: <TicketListPage />,
+            path: "app",
+            element: <WorkspaceLayout />,
+            children: [
+              {
+                path: "dashboard",
+                element: <DashboardPage />,
+              },
+              {
+                path: "tickets",
+                element: <TicketListPage />,
+              },
+              {
+                path: "my-work",
+                element: <MyWorkPage />,
+              },
+              {
+                path: "created-by-me",
+                element: <CreatedByMePage />,
+              },
+              { path: "tickets/:id", element: <TicketDetailPage /> },
+            ],
           },
-          {
-            path: "my-work",
-            element: <MyWorkPage />,
-          },
-          {
-            path: "created-by-me",
-            element: <CreatedByMePage />,
-          },
-          { path: "tickets/:id", element: <TicketDetailPage /> },
         ],
       },
     ],

@@ -1,57 +1,21 @@
-import {
-  LayoutDashboard,
-  Ticket,
-  Inbox,
-  SquarePen,
-  Settings,
-  ChevronRight,
-  Command,
-  LogOut,
-} from "lucide-react";
+import { ChevronRight, Command, LogOut } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { getDisplayName } from "../utils/getDisplayName";
 import { getInitials } from "../utils/getInitials";
-const NAVIGATION = [
-  {
-    label: "Overview",
-    to: "/app/dashboard",
-    icon: LayoutDashboard,
-  },
-  {
-    label: "Tickets",
-    to: "/app/tickets",
-    icon: Ticket,
-  },
-  {
-    label: "My Work",
-    to: "/app/my-work",
-    icon: Inbox,
-  },
-  {
-    label: "Created By Me",
-    to: "/app/created-by-me",
-    icon: SquarePen,
-  },
-] as const;
-
-const SECONDARY_NAVIGATION = [
-  {
-    label: "Settings",
-    to: "/app/settings",
-    icon: Settings,
-  },
-] as const;
+import { NAVIGATION, SECONDARY_NAVIGATION } from "../config/navigation";
 
 export default function Sidebar() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
 
   const displayName = getDisplayName(user?.fullName);
 
   const initials = getInitials(user?.fullName);
+  const handleLogout = async () => {
+    await logout();
+  };
   return (
     <aside className="sticky top-0 flex  h-screen w-64 shrink-0 flex-col border-r border-slate-200/80 bg-white">
-      {/* Brand */}
       <div className="flex h-16 items-center border-b border-slate-100 px-5">
         <NavLink to="/app/dashboard" className="group flex items-center gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-950 shadow-sm transition-all duration-200 group-hover:bg-indigo-600">
@@ -69,8 +33,6 @@ export default function Sidebar() {
           </div>
         </NavLink>
       </div>
-
-      {/* Workspace */}
       <div className="px-4 pt-6">
         <div className="mb-3 flex items-center justify-between px-2">
           <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">
@@ -100,7 +62,6 @@ export default function Sidebar() {
               >
                 {({ isActive }) => (
                   <>
-                    {/* Active indicator */}
                     {isActive && (
                       <span className="absolute -left-4 h-6 w-0.5 rounded-r-full bg-indigo-600" />
                     )}
@@ -127,8 +88,6 @@ export default function Sidebar() {
           })}
         </nav>
       </div>
-
-      {/* Secondary Navigation */}
       <div className="mt-8 px-4">
         <p className="mb-3 px-2 text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">
           System
@@ -164,16 +123,11 @@ export default function Sidebar() {
           })}
         </nav>
       </div>
-
-      {/* Bottom User Area */}
       <div className="mt-auto border-t border-slate-100 p-4">
         <div className="group flex items-center gap-3 rounded-xl p-2 transition-colors hover:bg-slate-50">
-          {/* Avatar */}
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-xs font-bold text-indigo-700">
             {initials}
           </div>
-
-          {/* User Info */}
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-semibold text-slate-800">
               {displayName}
@@ -183,10 +137,9 @@ export default function Sidebar() {
               {user?.userRole}
             </p>
           </div>
-
-          {/* Logout */}
           <button
             type="button"
+            onClick={handleLogout}
             aria-label="Log out"
             className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition-all hover:bg-white hover:text-slate-700 hover:shadow-sm"
           >

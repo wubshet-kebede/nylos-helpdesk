@@ -42,12 +42,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = async () => {
     try {
       await authService.logout();
+    } catch (error) {
+      console.error("Logout request failed on server:", error);
     } finally {
       setUser(null);
       window.location.href = "/login";
     }
   };
-
   return (
     <AuthContext.Provider
       value={{

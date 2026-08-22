@@ -1,73 +1,30 @@
-import {
-  X,
-  LayoutDashboard,
-  Ticket,
-  Inbox,
-  Settings,
-  ChevronRight,
-  SquarePen,
-  LogOut,
-} from "lucide-react";
+import { X, LogOut, ChevronRight } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { getDisplayName } from "../utils/getDisplayName";
 import { getInitials } from "../utils/getInitials";
+
+import { NAVIGATION, SECONDARY_NAVIGATION } from "../config/navigation";
+
 interface MobileSidebarProps {
   open: boolean;
   onClose: () => void;
 }
 
-const NAVIGATION = [
-  {
-    label: "Overview",
-    to: "/app/dashboard",
-    icon: LayoutDashboard,
-  },
-  {
-    label: "Tickets",
-    to: "/app/tickets",
-    icon: Ticket,
-  },
-  {
-    label: "My Work",
-    to: "/app/my-work",
-    icon: Inbox,
-  },
-  {
-    label: "Created By Me",
-    to: "/app/created-by-me",
-    icon: SquarePen,
-  },
-] as const;
-
-const SECONDARY_NAVIGATION = [
-  {
-    label: "Settings",
-    to: "/app/settings",
-    icon: Settings,
-  },
-] as const;
-
 export default function MobileSidebar({ open, onClose }: MobileSidebarProps) {
-  const { user } = useAuth();
-
-  const displayName = getDisplayName(user?.fullName);
-
-  const initials = getInitials(user?.fullName);
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
 
-  const handleLogout = () => {
+  const displayName = getDisplayName(user?.fullName);
+  const initials = getInitials(user?.fullName);
+
+  const handleLogout = async () => {
     onClose();
-
-    // Authentication logic will be connected later.
-    console.log("Logout");
-
-    navigate("/login");
+    await logout();
   };
 
   return (
     <>
-      {/* Backdrop */}
       <div
         className={`fixed inset-0 z-40 bg-slate-950/40 backdrop-blur-[2px] transition-opacity duration-300 lg:hidden ${
           open
@@ -78,14 +35,12 @@ export default function MobileSidebar({ open, onClose }: MobileSidebarProps) {
         aria-hidden="true"
       />
 
-      {/* Drawer */}
       <aside
         className={`fixed inset-y-0 left-0 z-50 flex w-[280px] max-w-[85vw] flex-col bg-white shadow-2xl transition-transform duration-300 ease-out lg:hidden ${
           open ? "translate-x-0" : "-translate-x-full"
         }`}
         aria-hidden={!open}
       >
-        {/* Header */}
         <div className="flex h-16 items-center justify-between border-b border-slate-100 px-5">
           <NavLink
             to="/app/dashboard"
@@ -111,13 +66,12 @@ export default function MobileSidebar({ open, onClose }: MobileSidebarProps) {
             type="button"
             onClick={onClose}
             aria-label="Close navigation"
-            className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-900"
+            className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-900 cursor-pointer"
           >
             <X size={19} />
           </button>
         </div>
 
-        {/* Navigation */}
         <div className="flex-1 overflow-y-auto px-4 py-6">
           <p className="mb-3 px-2 text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">
             Workspace
@@ -204,7 +158,6 @@ export default function MobileSidebar({ open, onClose }: MobileSidebarProps) {
           </nav>
         </div>
 
-        {/* User */}
         <div className="border-t border-slate-100 p-4">
           <div className="flex items-center gap-3 rounded-xl bg-slate-50 p-3">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-xs font-bold text-indigo-700">
@@ -225,7 +178,7 @@ export default function MobileSidebar({ open, onClose }: MobileSidebarProps) {
               type="button"
               onClick={handleLogout}
               aria-label="Log out"
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-white hover:text-slate-700"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-white hover:text-slate-700 cursor-pointer"
             >
               <LogOut size={15} />
             </button>

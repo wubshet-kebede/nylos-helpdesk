@@ -94,7 +94,7 @@ export default function DashboardPage() {
           <button
             type="button"
             onClick={() => setIsCreateTicketOpen(true)}
-            className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:bg-indigo-600 hover:shadow-md cursor-pointer"
+            className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:bg-amber-900 hover:shadow-md cursor-pointer"
           >
             <Ticket size={16} />
             Create ticket

@@ -42,6 +42,7 @@ axiosClient.interceptors.response.use(
     const isAuthCheck = requestUrl.includes("/auth/me");
     const isRefreshCall = requestUrl.includes("/auth/refresh");
     const isLoginCall = requestUrl.includes("/auth/login");
+    const isLogoutCall = requestUrl.includes("/auth/logout");
 
     if (
       status === 401 &&
@@ -49,7 +50,8 @@ axiosClient.interceptors.response.use(
       !originalRequest._retry &&
       !isAuthCheck &&
       !isRefreshCall &&
-      !isLoginCall
+      !isLoginCall &&
+      !isLogoutCall
     ) {
       originalRequest._retry = true;
 
