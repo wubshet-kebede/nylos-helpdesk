@@ -123,30 +123,15 @@ sequenceDiagram
 
 - **TanStack Query:** Manages server state for tickets, comments, and users through caching, background refetching, mutation handling, and cache invalidation.
 
-- **Form handling:** Forms use `react-hook-form` with `zod` schemas for client-side validation aligned with backend validation rules.
+- **Form handling:** Forms use `react-hook-form` with Zod schemas for client-side validation aligned with backend validation rules.
 
 - **Complete UI states:** The application handles loading, empty, filtered-empty, validation, and API-error states throughout the interface.
 
 - **Responsive design:** The UI is designed to work across desktop and smaller mobile screen sizes.
 
-- **Centralized Axios client:** The frontend uses a shared Axios client configured with the API base URL from `VITE_API_BASE_URL`, JSON request headers, a 10-second timeout, and `withCredentials: true`.
+- **Centralized Axios client:** A shared Axios client provides a consistent API base URL, JSON request configuration, credentialed requests, request timeout handling, and centralized response/error handling across all frontend API modules.
 
-- **Cookie-based authentication:** Authentication cookies are sent automatically by the browser with API requests. The frontend does not read, store, or attach authentication tokens manually.
-
-- **Centralized error handling:** The shared Axios client provides consistent handling for API failures, allowing pages and components to display predictable validation and error feedback.
-
-> **Security note:** Authentication cookies use the `HttpOnly` flag, so they cannot be accessed through JavaScript or `document.cookie`. For cross-origin frontend/API requests, `withCredentials: true` instructs the browser to include cookies. The backend must also allow credentials through its CORS policy and use an explicit allowed origin rather than `*`.
-
-```ts
-const axiosClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:5231/api/v1",
-  headers: {
-    "Content-Type": "application/json",
-  },
-  withCredentials: true,
-  timeout: 10000,
-});
-```
+- **Cookie-based API requests:** Axios uses `withCredentials: true` so the browser includes the HTTP-only authentication cookies required by protected API endpoints. Token lifecycle and silent session renewal are documented in the [Authentication and session management](#authentication-and-session-management) section.
 
 ## Database Setup
 
