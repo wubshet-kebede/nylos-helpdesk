@@ -748,4 +748,3 @@ For the full explanation of architectural choices, validation strategy, authenti
 
 ## License
 
-This repository was created for the Nylos Software Developer technical assessment.
