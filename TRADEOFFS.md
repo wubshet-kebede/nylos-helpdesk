@@ -1,6 +1,6 @@
 # Technical Decisions and Trade-offs
 
-This project was implemented as a time-boxed technical assessment. The focus was to deliver the required ticket-management workflow with clear boundaries, reliable validation, cookie-based JWT authentication with refresh-token rotation, and a polished user experience.
+This project was implemented as a time-boxed  project. The focus was to deliver the required ticket-management workflow with clear boundaries, reliable validation, cookie-based JWT authentication with refresh-token rotation, and a polished user experience.
 
 ## 1. Architecture: Modular monolith
 
@@ -106,7 +106,7 @@ These items were de-prioritized to focus on delivering the required ticket-manag
 
 ## Future improvements
 
-If the application were extended beyond the assessment, the next priorities would be:
+If the application were extended beyond, the next priorities would be:
 
 1. SignalR notifications for ticket updates and new comments.
 2. Email notifications and file attachments.
