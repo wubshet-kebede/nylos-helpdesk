@@ -1,5 +1,5 @@
 import { X, LogOut, ChevronRight } from "lucide-react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { getDisplayName } from "../utils/getDisplayName";
 import { getInitials } from "../utils/getInitials";
