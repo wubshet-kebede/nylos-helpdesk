@@ -5,6 +5,7 @@ namespace Nylos.Helpdesk.Modules.Users.Infrastructure.Persistence;
 
 public sealed class UsersDbContext : DbContext
 {
+    // recieves the database config 
     public UsersDbContext(DbContextOptions<UsersDbContext> options) : base(options) { }
 
     public DbSet<User> Users => Set<User>();
@@ -13,6 +14,7 @@ public sealed class UsersDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasDefaultSchema("users");
+        //apply the cE core configuration
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(UsersDbContext).Assembly);
         base.OnModelCreating(modelBuilder);
     }
