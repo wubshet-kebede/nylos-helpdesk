@@ -10,7 +10,8 @@ obj/
 *.suo
 *.userosscache
 *.sln.docstates
-
+backend/publish
+backend/publish.zip
 # =========================
 # ASP.NET Core
 # =========================
