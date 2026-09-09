@@ -13,8 +13,6 @@ interface MobileSidebarProps {
 
 export default function MobileSidebar({ open, onClose }: MobileSidebarProps) {
   const { user, logout } = useAuth();
-  const navigate = useNavigate();
-
   const displayName = getDisplayName(user?.fullName);
   const initials = getInitials(user?.fullName);
 

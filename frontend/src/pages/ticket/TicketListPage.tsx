@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Ticket } from "lucide-react";
+import { Ticket } from "lucide-react";
 import TicketFilterBar from "../../components/tickets/TicketFilterBar";
 import TicketTable from "../../components/tickets/TicketTable";
 import TicketPagination from "../../components/tickets/TicketPagination";
