@@ -16,19 +16,26 @@ public sealed class TicketNumberGenerator : ITicketNumberGenerator
     public async Task<string> GenerateAsync(CancellationToken cancellationToken = default)
     {
         var year = DateTime.UtcNow.Year;
-        var sequenceName = $"\"TicketNumberSequence_{year}\"";
+        var sequenceName = $"TicketNumberSequence_{year}";
 
-        //  Ensure a dedicated sequence exists for the current year
+
         await _dbContext.Database.ExecuteSqlRawAsync(
-            $"""CREATE SEQUENCE IF NOT EXISTS tickets.{sequenceName} START WITH 1 INCREMENT BY 1;""",
+            $"""CREATE SEQUENCE IF NOT EXISTS tickets."{sequenceName}" START WITH 1 INCREMENT BY 1;""",
             cancellationToken);
 
-        //  Fetch the next value for this year's sequence
+
+        await _dbContext.Database.ExecuteSqlRawAsync($"""
+            SELECT setval(
+                'tickets."{sequenceName}"', 
+                COALESCE((SELECT MAX(CAST(SUBSTRING("TicketNumber" FROM '[0-9]+$') AS INTEGER)) FROM tickets."Tickets" WHERE "TicketNumber" LIKE 'TK-{year}-%'), 0)
+            );
+        """, cancellationToken);
+
+
         var sequenceNumber = await _dbContext.Database
-            .SqlQueryRaw<long>($"""SELECT nextval('tickets.{sequenceName}') AS "Value" """)
+            .SqlQueryRaw<long>($"""SELECT nextval('tickets."{sequenceName}"') AS "Value" """)
             .SingleAsync(cancellationToken);
 
-        // Format as TK-2026-000001
         return $"TK-{year}-{sequenceNumber:D6}";
     }
 }
