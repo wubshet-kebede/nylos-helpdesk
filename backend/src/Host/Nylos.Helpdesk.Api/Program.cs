@@ -1,8 +1,3 @@
-/*it is the application Entry point
-Starts the web server, sets up routing, 
-and configures cross-cutting middleware
- (like CORS, Swagger/OpenAPI, 
- Authentication, HTTPS redirection).*/
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -18,7 +13,6 @@ using Nylos.Helpdesk.Modules.Comments.Presentation;
 using Nylos.Helpdesk.Shared.Infrastructure;
 using System.Text.Json.Serialization;
 var builder = WebApplication.CreateBuilder(args);
-// Add services to the container
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi();
@@ -39,12 +33,6 @@ builder.Services.AddCors(options =>
               .AllowCredentials();
     });
 });
-// Add Modules
-/*
-It holds references to every module's main .csproj so it can invoke their registration hooks
-it act as module aggregation or wiring 
-*/
-// authentication and authorization
 var jwtSettings = builder.Configuration.GetSection("Jwt");
 var secretKey = Encoding.UTF8.GetBytes(jwtSettings["Secret"]!);
 builder.Services.AddAuthentication(options =>
@@ -83,32 +71,28 @@ builder.Services.AddTicketsModule(builder.Configuration);
 builder.Services.AddUsersModule(builder.Configuration);
 builder.Services.AddCommentsModule(builder.Configuration);
 builder.Services.AddSharedInfrastructure();
-// Register all AbstractValidator classes across all loaded modules
 builder.Services.AddValidatorsFromAssemblies(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
     options.SerializerOptions.Converters.Add(
         new JsonStringEnumConverter());
 });
-// builder.Services.AddCommentsModule(builder.Configuration);
+
 var app = builder.Build();
 
-// Seed Default Admin User
 await UsersDbInitializer.SeedAsync(app.Services);
-/// seed default ticekt 
+
 await TicketsDbInitializer.SeedAsync(app.Services);
 app.UseCors(CorsPolicyName);
-//
-// Automatically route unhandled exceptions into ProblemDetails format
-//
+
 app.UseExceptionHandler();
-// Enable Authentication & Authorization Middleware
+
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapTicketEndpoints();
 app.MapUserEndpoints();
 app.MapCommentsEndpoints();
-// Configure the HTTP request pipeline
+app.MapGet("/api/v1/health", () => Results.Ok(new { status = "Healthy", timestamp = DateTime.UtcNow }));
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
@@ -134,7 +118,7 @@ if (app.Environment.IsDevelopment())
         </html>
         """, "text/html"));
 }
-//Comment out HttpsRedirection during local HTTP testing to prevent cookie-dropping redirects
-//app.UseHttpsRedirection();
+
+app.UseHttpsRedirection();
 app.MapControllers();
 app.Run();
